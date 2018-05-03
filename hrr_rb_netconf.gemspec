@@ -6,6 +6,7 @@ require "hrr_rb_netconf/version"
 Gem::Specification.new do |spec|
   spec.name          = "hrr_rb_netconf"
   spec.version       = HrrRbNetconf::VERSION
+  spec.license       = 'Apache-2.0'
   spec.authors       = ["hirura"]
   spec.email         = ["hirura@gmail.com"]
 
