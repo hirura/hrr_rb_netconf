@@ -7,12 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "hrr_rb_netconf"
   spec.version       = HrrRbNetconf::VERSION
   spec.license       = 'Apache-2.0'
+  spec.summary       = %q{Pure Ruby NETCONF server implementation}
+  spec.description   = %q{Pure Ruby NETCONF server implementation}
   spec.authors       = ["hirura"]
   spec.email         = ["hirura@gmail.com"]
-
-  spec.summary       = %q{TODO: Write a short summary, because RubyGems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "https://github.com/hirura/hrr_rb_netconf"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
