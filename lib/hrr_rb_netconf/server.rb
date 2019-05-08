@@ -3,6 +3,7 @@
 
 require 'hrr_rb_netconf/logger'
 require 'hrr_rb_netconf/server/error'
+require 'hrr_rb_netconf/server/errors'
 
 module HrrRbNetconf
   class Server
