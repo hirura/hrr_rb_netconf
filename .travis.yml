@@ -1,5 +1,24 @@
 sudo: false
 language: ruby
 rvm:
-  - 2.5.0
-before_install: gem install bundler -v 1.16.1
+  - 2.0
+  - 2.1
+  - 2.2
+  - 2.3
+  - 2.4
+  - 2.5
+  - 2.6
+  - ruby-head
+os:
+  - linux
+before_install:
+  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+  - gem install bundler -v '< 2'
+matrix:
+  allow_failures:
+    - rvm: ruby-head
+before_install:
+install:
+  - bundle install --path vendor/bundle
+script:
+  - bundle exec rake spec
