@@ -20,12 +20,14 @@ module HrrRbNetconf
                        else
                          raise ArgumentError, "io must be an instance of IO or Array"
                        end
+        @capabilities = Array.new
         @local_capabilities = Capability.list
         @remote_capabilities = Array.new
       end
 
       def start
         exchange_hello
+        negotiate_capabilities
       end
 
       def exchange_hello
@@ -54,7 +56,6 @@ module HrrRbNetconf
         @io_w.write "#{buf}\n]]>]]>\n"
       end
 
-
       def receive_hello
         buf = String.new
         loop do
@@ -67,6 +68,15 @@ module HrrRbNetconf
         remote_capabilities_xml_doc = REXML::Document.new(buf[0..-7], {:ignore_whitespace_nodes => :all})
         remote_capabilities_xml_doc.each_element('/hello/capabilities/capability'){ |c| @remote_capabilities.push c.text }
         @logger.info { "Remote capabilities: #{@remote_capabilities}" }
+      end
+
+      def negotiate_capabilities
+        (@local_capabilities & @remote_capabilities).each{ |c| @capabilities.push c }
+        @logger.info { "Negotiated capabilities: #{@capabilities}" }
+        unless @capabilities.any?{ |c| /^urn:ietf:params:netconf:base:\d+\.\d+$/ =~ c }
+          @logger.error { "No base NETCONF capability negotiated" }
+          raise  "No base NETCONF capability negotiated"
+        end
       end
     end
   end
