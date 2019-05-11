@@ -28,6 +28,7 @@ module HrrRbNetconf
       def start
         exchange_hello
         negotiate_capabilities
+        initialize_sender_and_receiver
       end
 
       def exchange_hello
@@ -52,7 +53,7 @@ module HrrRbNetconf
         formatter = REXML::Formatters::Pretty.new(2)
         formatter.compact = true
         formatter.write(xml_doc, buf)
-        @logger.debug { "Send hello message: #{buf.inspect}" }
+        @logger.debug { "Sending hello message: #{buf.inspect}" }
         @io_w.write "#{buf}\n]]>]]>\n"
       end
 
@@ -77,6 +78,13 @@ module HrrRbNetconf
           @logger.error { "No base NETCONF capability negotiated" }
           raise  "No base NETCONF capability negotiated"
         end
+      end
+
+      def initialize_sender_and_receiver
+        base_capability = @capabilities.select{ |c| /^urn:ietf:params:netconf:base:\d+\.\d+$/ =~ c }.sort.last
+        @logger.info { "Base NETCONF capability: #{base_capability}" }
+        @sender   = Capability[base_capability]::Sender.new   @io_w
+        @receiver = Capability[base_capability]::Receiver.new @io_r
       end
     end
   end
