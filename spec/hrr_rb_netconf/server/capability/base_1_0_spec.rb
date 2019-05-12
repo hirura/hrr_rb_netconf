@@ -61,16 +61,47 @@ RSpec.describe HrrRbNetconf::Server::Capability::Base_1_0 do
 
     describe "when receives valid message" do
       it "returns XML element" do
-        io_r.reopen '<a><b /></a>]]>]]>'
-        expect(received_message).to eq "<a>\n  <b/>\n</a>"
+        io_r.reopen "<rpc message-id='1' xmlns='urn:ietf:params:xml:ns:netconf:base:1.0'><operation/></rpc>]]>]]>"
+        expect(received_message).to eq "<rpc message-id='1' xmlns='urn:ietf:params:xml:ns:netconf:base:1.0'>\n  <operation/>\n</rpc>"
       end
     end
 
     describe "when receives invalid message" do
-      it "raises error" do
-        io_r.reopen 'invalid]]>]]>'
-        expect { received_message }.to raise_error
+      describe "when not well-formed XML" do
+        it "raises error" do
+          io_r.reopen "<abc]]>]]>"
+          expect { received_message }.to raise_error
+        end
+      end
+
+      describe "when not well-formed XML and the length is less than 4" do
+        it "raises error" do
+          io_r.reopen "<]]>]]>"
+          expect { received_message }.to raise_error
+        end
+      end
+
+      describe "when the root tag is not \"rpc\"" do
+        it "raises error" do
+          io_r.reopen "<other />]]>]]>"
+          expect { received_message }.to raise_error
+        end
+      end
+
+      describe "when there is no namespace" do
+        it "raises error" do
+          io_r.reopen "<rpc />]]>]]>"
+          expect { received_message }.to raise_error
+        end
+      end
+
+      describe "when invalid namespace" do
+        it "raises error" do
+          io_r.reopen "<rpc xmlns=\"invalid\"/>]]>]]>"
+          expect { received_message }.to raise_error
+        end
       end
     end
   end
 end
+

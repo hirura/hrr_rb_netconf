@@ -57,10 +57,25 @@ module HrrRbNetconf
             end
             @logger.debug { "Received message: #{buf[0..-7].inspect}" }
             begin
-              REXML::Document.new(buf[0..-7], {:ignore_whitespace_nodes => :all}).root
+              received_msg = REXML::Document.new(buf[0..-7], {:ignore_whitespace_nodes => :all}).root
+              validate_received_msg received_msg
+              received_msg
             rescue => e
-              @logger.error { "Invalid received message: #{buf[0..-7].inspect}: #{e.message}" }
-              raise "Invalid received message: #{buf[0..-7].inspect}: #{e.message}"
+              info = "Invalid received message: #{e.message.split("\n").first}: #{buf[0..-7].inspect}"
+              @logger.info { info }
+              raise info
+            end
+          end
+
+          def validate_received_msg received_msg
+            unless received_msg
+              raise "No valid root tag interpreted"
+            end
+            unless "rpc" == received_msg.name
+              raise "Invalid message: expected #{"rpc".inspect}, but got #{received_msg.name.inspect}"
+            end
+            unless "urn:ietf:params:xml:ns:netconf:base:1.0" == received_msg.namespace
+              raise "Invalid namespace: expected #{"urn:ietf:params:xml:ns:netconf:base:1.0".inspect}, but got #{received_msg.namespace.inspect}"
             end
           end
         end
