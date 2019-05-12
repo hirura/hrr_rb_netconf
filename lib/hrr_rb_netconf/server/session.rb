@@ -29,6 +29,7 @@ module HrrRbNetconf
         exchange_hello
         negotiate_capabilities
         initialize_sender_and_receiver
+        operation_loop
       end
 
       def exchange_hello
@@ -85,6 +86,39 @@ module HrrRbNetconf
         @logger.info { "Base NETCONF capability: #{base_capability}" }
         @sender   = Capability[base_capability]::Sender.new   @io_w
         @receiver = Capability[base_capability]::Receiver.new @io_r
+      end
+
+      def operation_loop
+        loop do
+          received_message = receive_message
+
+          message_id = received_message.attributes['message-id']
+          unless message_id
+            xml_doc = REXML::Document.new
+            rpc_reply_e = xml_doc.add_element("rpc-reply")
+            rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
+            rpc_reply_e.add Error['missing-attribute'].new('rpc', 'error', info: {'bad-attribute' => 'message-id', 'bad-element' => 'rpc'}).to_rpc_error
+            @sender.send_message rpc_reply_e
+            next
+          end
+
+          # Run some operation here
+        end
+      end
+
+      def receive_message
+        begin
+          @receiver.receive_message
+        rescue Error => e
+          xml_doc = REXML::Document.new
+          rpc_reply_e = xml_doc.add_element("rpc-reply")
+          rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
+          rpc_reply_e.add e.to_rpc_error
+          @sender.send_message rpc_reply_e
+          retry
+        rescue
+          raise
+        end
       end
     end
   end
