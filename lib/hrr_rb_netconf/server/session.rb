@@ -4,6 +4,7 @@
 require 'rexml/document'
 require 'hrr_rb_netconf/logger'
 require 'hrr_rb_netconf/server/capability'
+require 'hrr_rb_netconf/server/filter'
 
 module HrrRbNetconf
   class Server
@@ -103,22 +104,21 @@ module HrrRbNetconf
 
           begin
             input_e = received_message.elements[1]
-            output = @server.datastore_operation(input_e)
-
+            raw_output = @server.datastore_operation(input_e)
+            raw_output_e = case raw_output
+                           when String
+                             REXML::Document.new(raw_output, {:ignore_whitespace_nodes => :all}).root
+                           when REXML::Document
+                             raw_output.root
+                           when REXML::Element
+                             raw_output
+                           else
+                             raise "Unexpected output: #{raw_output.inspect}"
+                           end
+            output_e = Filter.filter(raw_output_e, input_e)
             rpc_reply_e = received_message.clone
             rpc_reply_e.name = "rpc-reply"
-            case output
-            when String
-              rpc_reply_e.add REXML::Document.new(output, {:ignore_whitespace_nodes => :all}).root
-            when REXML::Document
-              rpc_reply_e.add output.root
-            when REXML::Element
-              rpc_reply_e.add output
-            else
-              @logger.error { "Unexpected output: #{output.inspect}" }
-              raise "Unexpected output: #{output.inspect}"
-            end
-
+            rpc_reply_e.add output_e
             @sender.send_message rpc_reply_e
           rescue Error => e
             rpc_reply_e = received_message.clone
@@ -126,6 +126,7 @@ module HrrRbNetconf
             rpc_reply_e.add e.to_rpc_error
             @sender.send_message rpc_reply_e
           rescue => e
+            @logger.error { e.message }
             raise
           end
         end
