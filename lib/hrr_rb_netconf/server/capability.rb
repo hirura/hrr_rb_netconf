@@ -31,3 +31,4 @@ module HrrRbNetconf
 end
 
 require 'hrr_rb_netconf/server/capability/base_1_0'
+require 'hrr_rb_netconf/server/capability/base_1_1'
