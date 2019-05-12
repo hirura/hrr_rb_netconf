@@ -94,15 +94,40 @@ module HrrRbNetconf
 
           message_id = received_message.attributes['message-id']
           unless message_id
-            xml_doc = REXML::Document.new
-            rpc_reply_e = xml_doc.add_element("rpc-reply")
-            rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
+            rpc_reply_e = received_message.clone
+            rpc_reply_e.name = "rpc-reply"
             rpc_reply_e.add Error['missing-attribute'].new('rpc', 'error', info: {'bad-attribute' => 'message-id', 'bad-element' => 'rpc'}).to_rpc_error
             @sender.send_message rpc_reply_e
             next
           end
 
-          # Run some operation here
+          begin
+            input_e = received_message.elements[1]
+            output = @server.datastore_operation(input_e)
+
+            rpc_reply_e = received_message.clone
+            rpc_reply_e.name = "rpc-reply"
+            case output
+            when String
+              rpc_reply_e.add REXML::Document.new(output, {:ignore_whitespace_nodes => :all}).root
+            when REXML::Document
+              rpc_reply_e.add output.root
+            when REXML::Element
+              rpc_reply_e.add output
+            else
+              @logger.error { "Unexpected output: #{output.inspect}" }
+              raise "Unexpected output: #{output.inspect}"
+            end
+
+            @sender.send_message rpc_reply_e
+          rescue Error => e
+            rpc_reply_e = received_message.clone
+            rpc_reply_e.name = "rpc-reply"
+            rpc_reply_e.add e.to_rpc_error
+            @sender.send_message rpc_reply_e
+          rescue => e
+            raise
+          end
         end
       end
 
@@ -110,8 +135,7 @@ module HrrRbNetconf
         begin
           @receiver.receive_message
         rescue Error => e
-          xml_doc = REXML::Document.new
-          rpc_reply_e = xml_doc.add_element("rpc-reply")
+          rpc_reply_e = REXML::Element.new("rpc-reply")
           rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
           rpc_reply_e.add e.to_rpc_error
           @sender.send_message rpc_reply_e
