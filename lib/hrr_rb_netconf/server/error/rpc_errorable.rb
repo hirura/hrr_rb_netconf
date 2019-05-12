@@ -58,25 +58,29 @@ module HrrRbNetconf
         end
 
         def validate_path
-          case @path
-          when Hash
-            unless @path['value']
-              raise ArgumentError.new "error-path arg must contain 'value' key if Hash"
+          if @path
+            case @path
+            when Hash
+              unless @path['value']
+                raise ArgumentError.new "error-path arg must contain 'value' key if Hash"
+              end
             end
           end
         end
 
         def validate_message
-          case @message
-          when Hash
-            unless @message['value']
-              raise ArgumentError.new "error-message arg must contain \"value\" key if Hash"
-            end
-            unless @message.fetch('attributes', {}).keys.include?('xml:lang')
+          if @message
+            case @message
+            when Hash
+              unless @message['value']
+                raise ArgumentError.new "error-message arg must contain \"value\" key if Hash"
+              end
+              unless @message.fetch('attributes', {}).keys.include?('xml:lang')
+                @logger.warn { "error-message arg does not contain \"xml:lang\" attribute, so assuming \"en\"" }
+              end
+            else
               @logger.warn { "error-message arg does not contain \"xml:lang\" attribute, so assuming \"en\"" }
             end
-          else
-            @logger.warn { "error-message arg does not contain \"xml:lang\" attribute, so assuming \"en\"" }
           end
         end
 
