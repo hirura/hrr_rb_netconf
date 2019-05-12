@@ -19,10 +19,12 @@ RSpec.describe HrrRbNetconf::Server do
   end
 
   describe '#initialize' do
-    let(:server){ described_class.new }
+    let(:db){ 'db' }
+    let(:datastore){ HrrRbNetconf::Server::Datastore.new db }
+    let(:server){ described_class.new datastore }
 
     it "doesn't raise error" do
-      expect { described_class.new }.not_to raise_error
+      expect { server }.not_to raise_error
     end
 
     it "initializes @sessions" do
@@ -31,7 +33,9 @@ RSpec.describe HrrRbNetconf::Server do
   end
 
   describe "#allocate_session_id" do
-    let(:server){ described_class.new }
+    let(:db){ 'db' }
+    let(:datastore){ HrrRbNetconf::Server::Datastore.new db }
+    let(:server){ described_class.new datastore }
 
     describe "when allocate 3 times" do
       describe "when @sessions is empty" do
