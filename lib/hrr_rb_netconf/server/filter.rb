@@ -49,3 +49,4 @@ module HrrRbNetconf
 end
 
 require 'hrr_rb_netconf/server/filter/subtree'
+require 'hrr_rb_netconf/server/filter/xpath'

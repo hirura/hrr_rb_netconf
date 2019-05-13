@@ -32,3 +32,4 @@ end
 
 require 'hrr_rb_netconf/server/capability/base_1_0'
 require 'hrr_rb_netconf/server/capability/base_1_1'
+require 'hrr_rb_netconf/server/capability/xpath_1_0'
