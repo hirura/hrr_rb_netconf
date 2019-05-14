@@ -10,7 +10,9 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
   describe 'Namespace Selection' do
     let(:filter_str){ <<-'EOB'
-      <top xmlns="http://example.com/schema/1.2/config"/>
+      <filter type="subtree">
+        <top xmlns="http://example.com/schema/1.2/config"/>
+      </filter>
       EOB
     }
 
@@ -88,7 +90,9 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe 'Namespace wildcard' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns=""/>
+        <filter type="subtree">
+          <top xmlns=""/>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'
@@ -112,11 +116,13 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
   describe 'Attribute Match Expressions' do
     describe "Attribute with namespace" do
       let(:filter_str){ <<-'EOB'
-        <t:top xmlns:t="http://example.com/schema/1.2/config">
-          <t:interfaces>
-            <t:interface t:ifName="eth0"/>
-          </t:interfaces>
-        </t:top>
+        <filter type="subtree">
+          <t:top xmlns:t="http://example.com/schema/1.2/config">
+            <t:interfaces>
+              <t:interface t:ifName="eth0"/>
+            </t:interfaces>
+          </t:top>
+        </filter>
         EOB
       }
 
@@ -166,9 +172,11 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
   describe 'Containment Nodes' do
     let(:filter_str){ <<-'EOB'
-      <top xmlns="http://example.com/schema/1.2/config">
-        <child />
-      </top>
+      <filter type="subtree">
+        <top xmlns="http://example.com/schema/1.2/config">
+          <child />
+        </top>
+      </filter>
       EOB
     }
 
@@ -187,9 +195,11 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
   describe 'Selection Nodes' do
     let(:filter_str){ <<-'EOB'
-      <top xmlns="http://example.com/schema/1.2/config">
-        <child />
-      </top>
+      <filter type="subtree">
+        <top xmlns="http://example.com/schema/1.2/config">
+          <child />
+        </top>
+      </filter>
       EOB
     }
 
@@ -209,13 +219,15 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
   describe 'Content Match Nodes' do
     describe 'Single content match node' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <children>
-            <child>
-              <name>foo</name>
-            </child>
-          </children>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <children>
+              <child>
+                <name>foo</name>
+              </child>
+            </children>
+          </top>
+        </filter>
         EOB
       }
 
@@ -299,14 +311,16 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe 'Multiple content match nodes' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <children>
-            <child>
-              <name>foo</name>
-              <bar>baz</bar>
-            </child>
-          </children>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <children>
+              <child>
+                <name>foo</name>
+                <bar>baz</bar>
+              </child>
+            </children>
+          </top>
+        </filter>
         EOB
       }
 
@@ -397,7 +411,10 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
     end
 
     describe '6.4.2.  Empty Filter' do
-      let(:filter_str){ '' }
+      let(:filter_str){ <<-'EOB'
+        <filter type="subtree" />
+        EOB
+      }
       let(:input_str){ <<-'EOB'
         <top xmlns="http://example.com/schema/1.2/config" />
         EOB
@@ -411,9 +428,11 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe '6.4.3.  Select the Entire <users> Subtree' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <users/>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <users/>
+          </top>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'
@@ -458,11 +477,13 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
       describe 'the container <users> defines one child element (<user>)' do
         let(:filter_str){ <<-'EOB'
-          <top xmlns="http://example.com/schema/1.2/config">
-            <users>
-              <user/>
-            </users>
-          </top>
+          <filter type="subtree">
+            <top xmlns="http://example.com/schema/1.2/config">
+              <users>
+                <user/>
+              </users>
+            </top>
+          </filter>
           EOB
         }
 
@@ -474,13 +495,15 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe '6.4.4.  Select All <name> Elements within the <users> Subtree' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <users>
-            <user>
-              <name/>
-            </user>
-          </users>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <users>
+              <user>
+                <name/>
+              </user>
+            </users>
+          </top>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'
@@ -541,13 +564,15 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe '6.4.5.  One Specific <user> Entry' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <users>
-            <user>
-              <name>fred</name>
-            </user>
-          </users>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <users>
+              <user>
+                <name>fred</name>
+              </user>
+            </users>
+          </top>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'
@@ -608,15 +633,17 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe '6.4.6.  Specific Elements from a Specific <user> Entry' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <users>
-            <user>
-              <name>fred</name>
-              <type/>
-              <full-name/>
-            </user>
-          </users>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <users>
+              <user>
+                <name>fred</name>
+                <type/>
+                <full-name/>
+              </user>
+            </users>
+          </top>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'
@@ -673,27 +700,29 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe '6.4.7.  Multiple Subtrees' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <users>
-            <user>
-              <name>root</name>
-              <company-info/>
-            </user>
-            <user>
-              <name>fred</name>
-              <company-info>
-                <id/>
-              </company-info>
-            </user>
-            <user>
-              <name>barney</name>
-              <type>superuser</type>
-              <company-info>
-                <dept/>
-              </company-info>
-            </user>
-          </users>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <users>
+              <user>
+                <name>root</name>
+                <company-info/>
+              </user>
+              <user>
+                <name>fred</name>
+                <company-info>
+                  <id/>
+                </company-info>
+              </user>
+              <user>
+                <name>barney</name>
+                <type>superuser</type>
+                <company-info>
+                  <dept/>
+                </company-info>
+              </user>
+            </users>
+          </top>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'
@@ -758,11 +787,13 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
 
     describe '6.4.8.  Elements with Attribute Naming' do
       let(:filter_str){ <<-'EOB'
-        <t:top xmlns:t="http://example.com/schema/1.2/stats">
-          <t:interfaces>
-            <t:interface t:ifName="eth0"/>
-          </t:interfaces>
-        </t:top>
+        <filter type="subtree">
+          <t:top xmlns:t="http://example.com/schema/1.2/stats">
+            <t:interfaces>
+              <t:interface t:ifName="eth0"/>
+            </t:interfaces>
+          </t:top>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'
@@ -801,18 +832,20 @@ RSpec.describe HrrRbNetconf::Server::Filter::Subtree do
   describe 'Other conditions' do
     describe 'Data instances are not duplicated' do
       let(:filter_str){ <<-'EOB'
-        <top xmlns="http://example.com/schema/1.2/config">
-          <users>
-            <user>
-              <name>root</name>
-              <type></type>
-            </user>
-            <user>
-              <name></name>
-              <type>superuser</type>
-            </user>
-          </users>
-        </top>
+        <filter type="subtree">
+          <top xmlns="http://example.com/schema/1.2/config">
+            <users>
+              <user>
+                <name>root</name>
+                <type></type>
+              </user>
+              <user>
+                <name></name>
+                <type>superuser</type>
+              </user>
+            </users>
+          </top>
+        </filter>
         EOB
       }
       let(:input_str){ <<-'EOB'

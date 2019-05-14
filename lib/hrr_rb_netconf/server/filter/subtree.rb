@@ -17,7 +17,8 @@ module HrrRbNetconf
           def filter raw_output_e, filter_e
             selected_element_xpaths = []
             output_xml_doc = REXML::Document.new 
-            filter_recursively(selected_element_xpaths, output_xml_doc, raw_output_e, filter_e)
+            subtree_e = filter_e.elements[1]
+            filter_recursively(selected_element_xpaths, output_xml_doc, raw_output_e, subtree_e)
             if debug
               formatter = REXML::Formatters::Pretty.new(2)
               formatter.compact = true

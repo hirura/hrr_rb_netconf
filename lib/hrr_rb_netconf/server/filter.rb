@@ -29,11 +29,7 @@ module HrrRbNetconf
           if filter_e
             filter_type = filter_e.attributes['type']
             if self[filter_type]
-              p filter_e.elements[1].to_s
-              p raw_output_e.to_s
-              tmp = self[filter_type].filter raw_output_e, filter_e.elements[1]
-              p tmp
-              tmp
+              self[filter_type].filter raw_output_e, filter_e
             else
               raise "Unsupported filter type: #{filter_type}"
             end
