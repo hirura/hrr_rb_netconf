@@ -32,4 +32,12 @@ end
 
 require 'hrr_rb_netconf/server/capability/base_1_0'
 require 'hrr_rb_netconf/server/capability/base_1_1'
+require 'hrr_rb_netconf/server/capability/writable_running_1_0'
+require 'hrr_rb_netconf/server/capability/candidate_1_0'
+require 'hrr_rb_netconf/server/capability/confirmed_commit_1_0'
+require 'hrr_rb_netconf/server/capability/confirmed_commit_1_1'
+require 'hrr_rb_netconf/server/capability/rollback_on_error_1_0'
+require 'hrr_rb_netconf/server/capability/startup_1_0'
+require 'hrr_rb_netconf/server/capability/validate_1_0'
+require 'hrr_rb_netconf/server/capability/validate_1_1'
 require 'hrr_rb_netconf/server/capability/xpath_1_0'
