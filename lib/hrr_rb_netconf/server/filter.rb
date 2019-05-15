@@ -31,7 +31,7 @@ module HrrRbNetconf
             if self[filter_type]
               self[filter_type].filter raw_output_e, filter_e
             else
-              raise "Unsupported filter type: #{filter_type}"
+              raise Error['bad-attribute'].new('protocol', 'error', info: {'bad-attribute' => filter_type, 'bad-element' => 'filter'})
             end
           else
             raw_output_e

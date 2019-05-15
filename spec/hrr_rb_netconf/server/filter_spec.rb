@@ -47,7 +47,7 @@ RSpec.describe HrrRbNetconf::Server::Filter do
         let(:raw_output_e){ '<a xmlns="ab"><b/></a>' }
         let(:input_e){ REXML::Document.new('<get><filter type="invalid" /></get>').root }
         it "returns output filtered" do
-          expect{ described_class.filter raw_output_e, input_e }.to raise_error
+          expect{ described_class.filter raw_output_e, input_e }.to raise_error HrrRbNetconf::Server::Error['bad-attribute']
         end
       end
     end
