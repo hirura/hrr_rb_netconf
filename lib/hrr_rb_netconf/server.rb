@@ -64,6 +64,11 @@ module HrrRbNetconf
       end
     end
 
+    def close_session session_id
+      @logger.info { "Close session: Session ID: #{session_id}" }
+      @sessions[session_id].close
+    end
+
     def datastore_operation input_e
       oper_name = input_e.name
       if @datastore.operation_proc(oper_name)

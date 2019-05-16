@@ -43,8 +43,7 @@ module HrrRbNetconf
       def close
         @logger.info { "Being closed" }
         @closed = true
-        @io_r.close_read
-        @io_w.close_write
+        @io_r.close
       end
 
       def closed?
@@ -147,6 +146,10 @@ module HrrRbNetconf
           begin
             input_e = received_message.elements[1]
             raw_output = @server.datastore_operation(input_e)
+            case input_e.name
+            when 'kill-session'
+              @server.close_session Integer(input_e.elements['session-id'].text)
+            end
             raw_output_e = case raw_output
                            when String
                              REXML::Document.new(raw_output, {:ignore_whitespace_nodes => :all}).root
