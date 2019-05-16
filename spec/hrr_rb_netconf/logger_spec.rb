@@ -72,8 +72,8 @@ RSpec.describe HrrRbNetconf::Logger do
       before :example do
         HrrRbNetconf::Logger.initialize internal_logger
       end
-      it "calls #fatal method of @@logger with '#\{name\}: ' prefix" do
-        expect(logger.send(method){ method }).to eq "#{name}: #{method}"
+      it "calls #fatal method of @@logger with 'p#\{Process.pid\}.t#\{Thread.current.object_id\}: #\{name\}: ' prefix" do
+        expect(logger.send(method){ method }).to eq "p#{Process.pid}.t#{Thread.current.object_id}: #{name}: #{method}"
       end
     end
   end
@@ -94,8 +94,8 @@ RSpec.describe HrrRbNetconf::Logger do
       before :example do
         HrrRbNetconf::Logger.initialize internal_logger
       end
-      it "calls #error method of @@logger with '#\{name\}: ' prefix" do
-        expect(logger.send(method){ method }).to eq "#{name}: #{method}"
+      it "calls #error method of @@logger with 'p#\{Process.pid\}.t#\{Thread.current.object_id\}: #\{name\}: ' prefix" do
+        expect(logger.send(method){ method }).to eq "p#{Process.pid}.t#{Thread.current.object_id}: #{name}: #{method}"
       end
     end
   end
@@ -116,8 +116,8 @@ RSpec.describe HrrRbNetconf::Logger do
       before :example do
         HrrRbNetconf::Logger.initialize internal_logger
       end
-      it "calls #warn method of @@logger with '#\{name\}: ' prefix" do
-        expect(logger.send(method){ method }).to eq "#{name}: #{method}"
+      it "calls #warn method of @@logger with 'p#\{Process.pid\}.t#\{Thread.current.object_id\}: #\{name\}: ' prefix" do
+        expect(logger.send(method){ method }).to eq "p#{Process.pid}.t#{Thread.current.object_id}: #{name}: #{method}"
       end
     end
   end
@@ -138,8 +138,8 @@ RSpec.describe HrrRbNetconf::Logger do
       before :example do
         HrrRbNetconf::Logger.initialize internal_logger
       end
-      it "calls #info method of @@logger with '#\{name\}: ' prefix" do
-        expect(logger.send(method){ method }).to eq "#{name}: #{method}"
+      it "calls #info method of @@logger with 'p#\{Process.pid\}.t#\{Thread.current.object_id\}: #\{name\}: ' prefix" do
+        expect(logger.send(method){ method }).to eq "p#{Process.pid}.t#{Thread.current.object_id}: #{name}: #{method}"
       end
     end
   end
@@ -160,8 +160,8 @@ RSpec.describe HrrRbNetconf::Logger do
       before :example do
         HrrRbNetconf::Logger.initialize internal_logger
       end
-      it "calls #debug method of @@logger with '#\{name\}: ' prefix" do
-        expect(logger.send(method){ method }).to eq "#{name}: #{method}"
+      it "calls #debug method of @@logger with 'p#\{Process.pid\}.t#\{Thread.current.object_id\}: #\{name\}: ' prefix" do
+        expect(logger.send(method){ method }).to eq "p#{Process.pid}.t#{Thread.current.object_id}: #{name}: #{method}"
       end
     end
   end
