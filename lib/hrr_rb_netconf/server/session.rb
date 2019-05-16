@@ -21,16 +21,34 @@ module HrrRbNetconf
                        else
                          raise ArgumentError, "io must be an instance of IO or Array"
                        end
+        @closed = false
         @capabilities = Array.new
         @local_capabilities = Capability.list
         @remote_capabilities = Array.new
       end
 
       def start
-        exchange_hello
-        negotiate_capabilities
-        initialize_sender_and_receiver
-        operation_loop
+        begin
+          exchange_hello
+          negotiate_capabilities
+          initialize_sender_and_receiver
+          operation_loop
+        rescue
+          raise
+        ensure
+          close
+        end
+      end
+
+      def close
+        @logger.info { "Being closed" }
+        @closed = true
+        @io_r.close_read
+        @io_w.close_write
+      end
+
+      def closed?
+        @closed
       end
 
       def exchange_hello
@@ -91,14 +109,38 @@ module HrrRbNetconf
 
       def operation_loop
         loop do
-          received_message = receive_message
+          if closed?
+            break
+          end
+
+          begin
+            received_message = @receiver.receive_message
+          rescue Error => e
+            rpc_reply_e = REXML::Element.new("rpc-reply")
+            rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
+            rpc_reply_e.add e.to_rpc_error
+            begin
+              @sender.send_message rpc_reply_e
+            rescue IOError
+              break
+            end
+            next
+          end
+
+          if received_message.nil?
+            break
+          end
 
           message_id = received_message.attributes['message-id']
           unless message_id
             rpc_reply_e = received_message.clone
             rpc_reply_e.name = "rpc-reply"
             rpc_reply_e.add Error['missing-attribute'].new('rpc', 'error', info: {'bad-attribute' => 'message-id', 'bad-element' => 'rpc'}).to_rpc_error
-            @sender.send_message rpc_reply_e
+            begin
+              @sender.send_message rpc_reply_e
+            rescue IOError
+              break
+            end
             next
           end
 
@@ -119,31 +161,31 @@ module HrrRbNetconf
             rpc_reply_e = received_message.clone
             rpc_reply_e.name = "rpc-reply"
             rpc_reply_e.add output_e
-            @sender.send_message rpc_reply_e
+            begin
+              @sender.send_message rpc_reply_e
+            rescue IOError
+              break
+            end
           rescue Error => e
             rpc_reply_e = received_message.clone
             rpc_reply_e.name = "rpc-reply"
             rpc_reply_e.add e.to_rpc_error
-            @sender.send_message rpc_reply_e
+            begin
+              @sender.send_message rpc_reply_e
+            rescue IOError
+              break
+            end
           rescue => e
             @logger.error { e.message }
             raise
+          ensure
+            case input_e.name
+            when 'close-session'
+              break
+            end
           end
         end
-      end
-
-      def receive_message
-        begin
-          @receiver.receive_message
-        rescue Error => e
-          rpc_reply_e = REXML::Element.new("rpc-reply")
-          rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
-          rpc_reply_e.add e.to_rpc_error
-          @sender.send_message rpc_reply_e
-          retry
-        rescue
-          raise
-        end
+        @logger.info { "Exit operation_loop" }
       end
     end
   end

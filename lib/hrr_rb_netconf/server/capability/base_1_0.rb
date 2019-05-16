@@ -37,7 +37,12 @@ module HrrRbNetconf
               raise ArgumentError, "Unexpected sending message: #{msg.inspect}"
             end
             @logger.debug { "Sending message: #{buf.inspect}" }
-            @io_w.write "#{buf}\n]]>]]>\n"
+            begin
+              @io_w.write "#{buf}\n]]>]]>\n"
+            rescue => e
+              @logger.info { "Sender IO closed: #{e.class}: #{e.message}" }
+              raise IOError, "Sender IO closed: #{e.class}: #{e.message}"
+            end
           end
         end
 
@@ -50,7 +55,17 @@ module HrrRbNetconf
           def receive_message
             buf = String.new
             loop do
-              buf << @io_r.read(1)
+              begin
+                tmp = @io_r.read(1)
+              rescue => e
+                @logger.info { "Receiver IO closed: #{e.class}: #{e.message}" }
+                return nil
+              end
+              if tmp.nil?
+                @logger.info { "Receiver IO closed" }
+                return nil
+              end
+              buf += tmp
               if buf[-6..-1] == ']]>]]>'
                 break
               end

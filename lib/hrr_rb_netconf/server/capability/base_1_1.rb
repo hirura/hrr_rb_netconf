@@ -48,7 +48,12 @@ module HrrRbNetconf
             end
             encoded_msg.write "\n##\n"
             @logger.debug { "Sending encoded message: #{encoded_msg.string.inspect}" }
-            @io_w.write encoded_msg.string
+            begin
+              @io_w.write encoded_msg.string
+            rescue => e
+              @logger.info { "Sender IO closed: #{e.class}: #{e.message}" }
+              raise IOError, "Sender IO closed: #{e.class}: #{e.message}"
+            end
           end
         end
 
@@ -65,10 +70,15 @@ module HrrRbNetconf
             read_len = 1
             state = :beginning_of_msg
             until state == :end_of_msg
-              buf = @io_r.read(read_len)
-              if buf == nil
-                @logger.info { "Receiver IO is closed" }
-                raise "Receiver IO is closed"
+              begin
+                buf = @io_r.read(read_len)
+              rescue => e
+                @logger.info { "Receiver IO closed: #{e.class}: #{e.message}" }
+                return nil
+              end
+              if buf.nil?
+                @logger.info { "Receiver IO closed" }
+                return nil
               end
               chunked_msg.write buf
               case state
