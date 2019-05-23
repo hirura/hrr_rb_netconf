@@ -4,7 +4,7 @@
 require 'rexml/document'
 require 'hrr_rb_netconf/logger'
 require 'hrr_rb_netconf/server/capability'
-require 'hrr_rb_netconf/server/filter'
+require 'hrr_rb_netconf/server/operation'
 
 module HrrRbNetconf
   class Server
@@ -44,7 +44,10 @@ module HrrRbNetconf
       def close
         @logger.info { "Being closed" }
         @closed = true
-        @io_r.close
+        begin
+          @io_r.close_read
+        rescue
+        end
       end
 
       def closed?
@@ -109,6 +112,8 @@ module HrrRbNetconf
 
       def operation_loop
         datastore_session = @datastore.new_session self
+        operation = Operation.new @server, self, datastore_session
+
         loop do
           if closed?
             break
@@ -132,40 +137,8 @@ module HrrRbNetconf
             break
           end
 
-          message_id = received_message.attributes['message-id']
-          unless message_id
-            rpc_reply_e = received_message.clone
-            rpc_reply_e.name = "rpc-reply"
-            rpc_reply_e.add Error['missing-attribute'].new('rpc', 'error', info: {'bad-attribute' => 'message-id', 'bad-element' => 'rpc'}).to_rpc_error
-            begin
-              @sender.send_message rpc_reply_e
-            rescue IOError
-              break
-            end
-            next
-          end
-
           begin
-            input_e = received_message.elements[1]
-            raw_output = datastore_session.run(input_e.name, input_e)
-            case input_e.name
-            when 'kill-session'
-              @server.close_session Integer(input_e.elements['session-id'].text)
-            end
-            raw_output_e = case raw_output
-                           when String
-                             REXML::Document.new(raw_output, {:ignore_whitespace_nodes => :all}).root
-                           when REXML::Document
-                             raw_output.root
-                           when REXML::Element
-                             raw_output
-                           else
-                             raise "Unexpected output: #{raw_output.inspect}"
-                           end
-            output_e = Filter.filter(raw_output_e, input_e)
-            rpc_reply_e = received_message.clone
-            rpc_reply_e.name = "rpc-reply"
-            rpc_reply_e.add output_e
+            rpc_reply_e = operation.run received_message
             begin
               @sender.send_message rpc_reply_e
             rescue IOError
@@ -183,13 +156,16 @@ module HrrRbNetconf
           rescue => e
             @logger.error { e.message }
             raise
-          ensure
-            case input_e.name
-            when 'close-session'
-              break
-            end
           end
         end
+
+        datastore_session.close
+
+        begin
+          @io_w.close_write
+        rescue
+        end
+
         @logger.info { "Exit operation_loop" }
       end
     end
