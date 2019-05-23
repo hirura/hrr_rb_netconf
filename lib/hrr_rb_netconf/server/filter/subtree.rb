@@ -10,30 +10,18 @@ module HrrRbNetconf
         TYPE = 'subtree'
 
         class << self
-          def debug
-            false
-          end
-
           def filter raw_output_e, filter_e
             selected_element_xpaths = []
             output_xml_doc = REXML::Document.new 
             subtree_e = filter_e.elements[1]
             filter_recursively(selected_element_xpaths, output_xml_doc, raw_output_e, subtree_e)
-            if debug
-              formatter = REXML::Formatters::Pretty.new(2)
-              formatter.compact = true
-              formatter.write output_xml_doc, STDOUT
-              STDOUT.puts
-            end
             output_xml_doc.root
           end
 
           def content_match_nodes_match_all? content_match_nodes, raw_output_e
             content_match_nodes.all?{ |child_filter_e|
-              p 'child_filter_e', child_filter_e, child_filter_e.namespace, child_filter_e.name, child_filter_e.text if debug
               child_filter_attributes = child_filter_e.attributes.to_a.reject{ |attr| (attr.prefix =='' && attr.name == 'xmlns') || attr.prefix == 'xmlns' }
               raw_output_e.elements.to_a.any?{ |child_raw_output_e|
-                p 'child_raw_output_e', child_raw_output_e, child_raw_output_e.namespace, child_raw_output_e.name, child_raw_output_e.text if debug
                 (child_filter_e.namespace == "" || child_filter_e.namespace == child_raw_output_e.namespace) && child_filter_e.name == child_raw_output_e.name && child_filter_e.text == child_raw_output_e.text && (
                   child_filter_attributes.empty? || child_filter_attributes.reject{ |child_filter_attr|
                     child_raw_output_e.attributes.to_a.reject{ |attr| (attr.prefix =='' && attr.name == 'xmlns') || attr.prefix == 'xmlns' }.any?{ |child_raw_output_attr|
@@ -45,26 +33,24 @@ module HrrRbNetconf
             }
           end
 
-          def add_elem selected_element_xpaths, output_e, raw_output_e
-            xpath, elem = selected_element_xpaths.find{ |xpath, elem| xpath == raw_output_e.xpath }
-            unless xpath
+          def add_elem selected_element_xpaths, output_e, raw_output_e, output_e_duplicated
+            if output_e_duplicated
+              xpath, elem = selected_element_xpaths.find{ |xpath, elem| xpath == raw_output_e.xpath }
+              unless xpath
+                child_output_e = output_e.add raw_output_e.clone
+                selected_element_xpaths.push [raw_output_e.xpath, child_output_e]
+                [child_output_e, false]
+              else
+                [elem, true]
+              end
+            else
               child_output_e = output_e.add raw_output_e.clone
               selected_element_xpaths.push [raw_output_e.xpath, child_output_e]
-              child_output_e
-            else
-              elem
+              [child_output_e, false]
             end
           end
 
           def filter_recursively selected_element_xpaths, output_e, raw_output_e, filter_e, options={}
-            if debug
-              puts
-              puts '##### start filter_recursively #####'
-              p 'output_e',     [output_e,     (output_e.name rescue nil),     (output_e.namespace rescue nil),     (output_e.attributes.to_a.reject{ |attr|     (attr.prefix =='' && attr.name == 'xmlns') || attr.prefix == 'xmlns' } rescue nil)]
-              p 'raw_output_e', [raw_output_e, (raw_output_e.name rescue nil), (raw_output_e.namespace rescue nil), (raw_output_e.attributes.to_a.reject{ |attr| (attr.prefix =='' && attr.name == 'xmlns') || attr.prefix == 'xmlns' } rescue nil)]
-              p 'filter_e',     [filter_e,     (filter_e.name rescue nil),     (filter_e.namespace rescue nil),     (filter_e.attributes.to_a.reject{ |attr|     (attr.prefix =='' && attr.name == 'xmlns') || attr.prefix == 'xmlns' } rescue nil)]
-              p 'options',      options
-            end
             if filter_e
               if raw_output_e.name == filter_e.name
                 # Namespace Selection
@@ -78,62 +64,50 @@ module HrrRbNetconf
                     }
                   }.empty?
                     if filter_e.has_elements?
-                      p 'filter_e.has_elements' if debug
                       # Containment Nodes
                       if filter_e.elements.to_a.select{ |c| c.has_text? }.empty?
-                        p 'Containment Nodes' if debug
-                        child_output_e = add_elem selected_element_xpaths, output_e, raw_output_e
-                        p "child_output_e #{child_output_e.inspect} added" if debug
+                        child_output_e, child_output_e_duplicated = add_elem selected_element_xpaths, output_e, raw_output_e, options['output_e_duplicated']
                         raw_output_e.each_element{ |child_raw_output_e|
                           filter_e.elements.to_a.select{ |c| c.name == child_raw_output_e.name && (c.namespace == "" || c.namespace == child_raw_output_e.namespace) }.each{ |child_filter_e|
-                            filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace}
+                              unless child_output_e_duplicated
+                                if selected_element_xpaths.any?{ |xpath, elem| xpath == child_raw_output_e.xpath }
+                                  child_output_e_duplicated = true
+                                end
+                              end
+                            filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace, 'output_e_duplicated' => child_output_e_duplicated}
                           }
                         }
                       # Content Match Nodes
                       else
-                        p 'Content Match Nodes' if debug
                         content_match_nodes = filter_e.elements.to_a.select{ |c| c.has_text? }
                         not_content_match_nodes = filter_e.elements.to_a.reject{ |c| c.has_text? }
-                        p 'content_match_nodes', content_match_nodes.map{ |c| c.to_s } if debug
-                        p 'not_content_match_nodes', not_content_match_nodes.map{ |c| c.to_s } if debug
                         if content_match_nodes_match_all? content_match_nodes, raw_output_e
-                          p 'content match' if debug
-                          child_output_e = add_elem selected_element_xpaths, output_e, raw_output_e
-                          p "child_output_e #{child_output_e.inspect} added" if debug
+                          child_output_e, child_output_e_duplicated = add_elem selected_element_xpaths, output_e, raw_output_e, options['output_e_duplicated']
                           if not_content_match_nodes.empty?
-                            p 'not_content_match_nodes.empty?' if debug
                             raw_output_e.each_element{ |child_raw_output_e|
-                              p "child_raw_output_e: #{child_raw_output_e.to_s}" if debug
                               child_filter_e = filter_e.elements.to_a.find{ |c| (c.namespace == "" || child_raw_output_e.namespace == c.namespace) && child_raw_output_e.name == c.name }
-                              p "child_filter_e: #{child_filter_e.to_s}" if debug
                               if child_filter_e
-                                filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace}
+                                filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace, 'output_e_duplicated' => child_output_e_duplicated}
                               else
-                                filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace, 'in_filter' => true}
+                                filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace, 'in_filter' => true, 'output_e_duplicated' => child_output_e_duplicated}
                               end
                             }
                           else
-                            p 'not not_content_match_nodes.empty?' if debug
                             raw_output_e.each_element{ |child_raw_output_e|
-                              p "child_raw_output_e: #{child_raw_output_e.to_s}" if debug
                               child_filter_e = filter_e.elements.to_a.find{ |c| (c.namespace == "" || child_raw_output_e.namespace == c.namespace) && child_raw_output_e.name == c.name }
-                              p "child_filter_e: #{child_filter_e.to_s}" if debug
-                              filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace}
+                              filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, child_filter_e, {'namespace' => filter_namespace, 'output_e_duplicated' => child_output_e_duplicated}
                             }
                           end
                         else
-                          p 'content did not match' if debug
                         end
                       end
                     else
-                      p 'not filter_e.has_elements' if debug
-                      child_output_e = add_elem selected_element_xpaths, output_e, raw_output_e
-                      p "child_output_e #{child_output_e.inspect} added" if debug
+                      child_output_e, child_output_e_duplicated = add_elem selected_element_xpaths, output_e, raw_output_e, options['output_e_duplicated']
                       if raw_output_e.has_text?
                         child_output_e.text = raw_output_e.text
                       else
                         raw_output_e.each_element{ |child_raw_output_e|
-                          filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, nil, {'namespace' => filter_namespace, 'in_filter' => true}
+                          filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, nil, {'namespace' => filter_namespace, 'in_filter' => true, 'output_e_duplicated' => child_output_e_duplicated}
                         }
                       end
                     end
@@ -144,13 +118,12 @@ module HrrRbNetconf
               # Namespace Selection
               filter_namespace = options['namespace']
               if filter_namespace == nil || filter_namespace == "" || raw_output_e.namespace == filter_namespace
-                child_output_e = add_elem selected_element_xpaths, output_e, raw_output_e
-                p "child_output_e #{child_output_e.inspect} added" if debug
+                child_output_e, child_output_e_duplicated = add_elem selected_element_xpaths, output_e, raw_output_e, options['output_e_duplicated']
                 if raw_output_e.has_text?
                   child_output_e.text = raw_output_e.text
                 end
                 raw_output_e.each_element{ |child_raw_output_e|
-                  filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, filter_e, {'namespace' => filter_namespace, 'in_filter' => true}
+                  filter_recursively selected_element_xpaths, child_output_e, child_raw_output_e, filter_e, {'namespace' => filter_namespace, 'in_filter' => true, 'outout_e_duplicated' => child_output_e_duplicated}
                 }
               end
             end
