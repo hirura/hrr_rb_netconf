@@ -114,58 +114,48 @@ module HrrRbNetconf
         datastore_session = @datastore.new_session self
         operation = Operation.new @server, self, datastore_session
 
-        loop do
-          if closed?
-            break
-          end
-
-          begin
-            received_message = @receiver.receive_message
-          rescue Error => e
-            rpc_reply_e = REXML::Element.new("rpc-reply")
-            rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
-            rpc_reply_e.add e.to_rpc_error
-            begin
-              @sender.send_message rpc_reply_e
-            rescue IOError
-              break
-            end
-            next
-          end
-
-          if received_message.nil?
-            break
-          end
-
-          begin
-            rpc_reply_e = operation.run received_message
-            begin
-              @sender.send_message rpc_reply_e
-            rescue IOError
-              break
-            end
-          rescue Error => e
-            rpc_reply_e = received_message.clone
-            rpc_reply_e.name = "rpc-reply"
-            rpc_reply_e.add e.to_rpc_error
-            begin
-              @sender.send_message rpc_reply_e
-            rescue IOError
-              break
-            end
-          rescue => e
-            @logger.error { e.message }
-            raise
-          end
-        end
-
-        datastore_session.close
-
         begin
-          @io_w.close_write
-        rescue
-        end
+          loop do
+            if closed?
+              break
+            end
 
+            begin
+              begin
+                received_message = @receiver.receive_message
+                break unless received_message
+                rpc_reply_e = operation.run received_message
+              rescue Error => e
+                if received_message
+                  rpc_reply_e = received_message.clone
+                  rpc_reply_e.name = "rpc-reply"
+                else
+                  rpc_reply_e = REXML::Element.new("rpc-reply")
+                  rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
+                end
+                rpc_reply_e.add e.to_rpc_error
+              end
+
+              begin
+                @sender.send_message rpc_reply_e
+              rescue IOError
+                break
+              end
+            rescue => e
+              @logger.error { e.message }
+              raise
+            end
+          end
+        ensure
+          begin
+            datastore_session.close
+          rescue
+          end
+          begin
+            @io_w.close_write
+          rescue
+          end
+        end
         @logger.info { "Exit operation_loop" }
       end
     end
