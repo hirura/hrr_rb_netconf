@@ -2,8 +2,6 @@
 # vim: et ts=2 sw=2
 
 require 'hrr_rb_netconf/logger'
-require 'hrr_rb_netconf/server/operation/base'
-require 'hrr_rb_netconf/server/operation/model'
 require 'hrr_rb_netconf/server/filter'
 
 module HrrRbNetconf
