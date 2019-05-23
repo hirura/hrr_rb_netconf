@@ -13,12 +13,10 @@ RSpec.describe HrrRbNetconf::Server::Datastore do
   end
 
   describe "#run" do
-    before :example do
-      ds.start_session session
-    end
+    let(:ds_session){ ds.new_session session }
 
     after :example do
-      ds.close_session
+      ds_session.close
     end
 
     describe "without block" do
@@ -33,8 +31,8 @@ RSpec.describe HrrRbNetconf::Server::Datastore do
       }
 
       it "runs operation with db and input args" do
-        expect(ds.run('get', 'input1')).to eq ['get', db, 'input1'].join('-')
-        expect { ds.close_session }.not_to raise_error
+        expect(ds_session.run('get', 'input1')).to eq ['get', db, 'input1'].join('-')
+        expect { ds_session.close }.not_to raise_error
       end
     end
 
@@ -57,8 +55,8 @@ RSpec.describe HrrRbNetconf::Server::Datastore do
       }
 
       it "runs operation with args at oper_handler.start and then calls ensure block" do
-        expect(ds.run('get', 'input1')).to eq ['get', [db.string, session].join('-'), session, 'input1'].join('-')
-        ds.close_session
+        expect(ds_session.run('get', 'input1')).to eq ['get', [db.string, session].join('-'), session, 'input1'].join('-')
+        ds_session.close
         expect(db.string).to eq 'closed'
       end
     end

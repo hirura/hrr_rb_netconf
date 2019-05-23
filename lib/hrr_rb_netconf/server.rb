@@ -45,7 +45,7 @@ module HrrRbNetconf
         @mutex.synchronize do
           session_id = allocate_session_id
           @logger.info { "Session ID: #{session_id}" }
-          @sessions[session_id] = Session.new self, session_id, io
+          @sessions[session_id] = Session.new self, @datastore, session_id, io
         end
         t = Thread.new {
           @sessions[session_id].start
@@ -67,15 +67,6 @@ module HrrRbNetconf
     def close_session session_id
       @logger.info { "Close session: Session ID: #{session_id}" }
       @sessions[session_id].close
-    end
-
-    def datastore_operation input_e
-      oper_name = input_e.name
-      if @datastore.operation_proc(oper_name)
-        @datastore.operation_proc(oper_name).call(input_e)
-      else
-        raise Error['operation-not-supported'].new('protocol', 'error')
-      end
     end
   end
 end

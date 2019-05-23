@@ -9,9 +9,10 @@ require 'hrr_rb_netconf/server/filter'
 module HrrRbNetconf
   class Server
     class Session
-      def initialize server, session_id, io
+      def initialize server, datastore, session_id, io
         @logger = Logger.new self.class.name
         @server = server
+        @datastore = datastore
         @session_id = session_id
         @io_r, @io_w = case io
                        when IO
@@ -107,6 +108,7 @@ module HrrRbNetconf
       end
 
       def operation_loop
+        datastore_session = @datastore.new_session self
         loop do
           if closed?
             break
@@ -145,7 +147,7 @@ module HrrRbNetconf
 
           begin
             input_e = received_message.elements[1]
-            raw_output = @server.datastore_operation(input_e)
+            raw_output = datastore_session.run(input_e.name, input_e)
             case input_e.name
             when 'kill-session'
               @server.close_session Integer(input_e.elements['session-id'].text)

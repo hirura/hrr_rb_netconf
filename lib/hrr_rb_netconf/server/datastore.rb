@@ -2,7 +2,7 @@
 # vim: et ts=2 sw=2
 
 require 'hrr_rb_netconf/logger'
-require 'hrr_rb_netconf/server/datastore/oper_handler'
+require 'hrr_rb_netconf/server/datastore/session'
 
 module HrrRbNetconf
   class Server
@@ -11,12 +11,7 @@ module HrrRbNetconf
         @logger = Logger.new self.class.name
         @database = database
         @oper_procs = Hash.new
-        if blk
-          @oper_handler = OperHandler.new
-          @oper_thread = Fiber.new do |session|
-            blk.call @database, session, @oper_handler if blk
-          end
-        end
+        @session_proc = blk
       end
 
       def oper_proc oper_name, &oper_proc
@@ -27,30 +22,8 @@ module HrrRbNetconf
         @oper_procs[oper_name]
       end
 
-      def start_session session
-        if @oper_thread
-          @oper_thread.resume(session)
-        end
-      end
-
-      def close_session
-        if @oper_thread
-          while true
-            begin
-              @oper_thread.resume
-            rescue FiberError
-              break
-            end
-          end
-        end
-      end
-
-      def run oper_name, input
-        if @oper_thread
-          @oper_handler.run @oper_procs[oper_name], input
-        else
-          @oper_procs[oper_name].call @database, input
-        end
+      def new_session session
+        Session.new @database, @oper_procs, @session_proc, session
       end
     end
   end
