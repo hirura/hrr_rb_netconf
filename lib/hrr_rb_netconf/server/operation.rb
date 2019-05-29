@@ -40,6 +40,9 @@ module HrrRbNetconf
 
         input_e = xml_doc.elements[1]
 
+        unless @oper_procs.has_key? input_e.name
+          raise Error['operation-not-supported'].new('protocol', 'error')
+        end
         raw_output = @oper_procs[input_e.name].call(@server, @session, @datastore_session, input_e)
 
         raw_output_e = case raw_output
