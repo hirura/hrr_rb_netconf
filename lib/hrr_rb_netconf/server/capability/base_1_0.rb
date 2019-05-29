@@ -9,6 +9,52 @@ module HrrRbNetconf
     class Capability
       class Base_1_0 < Capability
         ID = 'urn:ietf:params:netconf:base:1.0'
+        DEPENDENCIES = []
+        IF_FEATURES  = []
+
+        oper_proc('get'){ |server, session, datastore, input_e|
+          datastore.run 'get', input_e
+        }
+
+        oper_proc('get-config'){ |server, session, datastore, input_e|
+          datastore.run 'get-config', input_e
+        }
+
+        oper_proc('edit-config'){ |server, session, datastore, input_e|
+          datastore.run 'edit-config', input_e
+          '<ok />'
+        }
+
+        oper_proc('copy-config'){ |server, session, datastore, input_e|
+          datastore.run 'copy-config', input_e
+          '<ok />'
+        }
+
+        oper_proc('delete-config'){ |server, session, datastore, input_e|
+          datastore.run 'delete-config', input_e
+          '<ok />'
+        }
+
+        oper_proc('lock'){ |server, session, datastore, input_e|
+          datastore.run 'lock', input_e
+          '<ok />'
+        }
+
+        oper_proc('unlock'){ |server, session, datastore, input_e|
+          datastore.run 'unlock', input_e
+          '<ok />'
+        }
+
+        oper_proc('close-session'){ |server, session, datastore, input_e|
+          datastore.run 'close-session', input_e
+          session.close
+          '<ok />'
+        }
+
+        oper_proc('kill-session'){ |server, session, datastore, input_e|
+          server.close_session Integer(input_e.elements['session-id'].text)
+          '<ok />'
+        }
 
         class Sender
           def initialize io_w

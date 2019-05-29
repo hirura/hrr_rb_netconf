@@ -9,9 +9,11 @@ require 'hrr_rb_netconf/server/operation'
 module HrrRbNetconf
   class Server
     class Session
-      def initialize server, datastore, session_id, io
+      def initialize server, capabilities, datastore, session_id, io
         @logger = Logger.new self.class.name
         @server = server
+        @local_capabilities = capabilities
+        @remote_capabilities = Array.new
         @datastore = datastore
         @session_id = session_id
         @io_r, @io_w = case io
@@ -23,9 +25,6 @@ module HrrRbNetconf
                          raise ArgumentError, "io must be an instance of IO or Array"
                        end
         @closed = false
-        @capabilities = Array.new
-        @local_capabilities = Capability.list
-        @remote_capabilities = Array.new
       end
 
       def start
@@ -65,7 +64,7 @@ module HrrRbNetconf
         hello_e = xml_doc.add_element 'hello'
         hello_e.add_namespace('urn:ietf:params:xml:ns:netconf:base:1.0')
         capabilities_e = hello_e.add_element 'capabilities'
-        @local_capabilities.each{ |c|
+        @local_capabilities.list_loadable.each{ |c|
           capability_e = capabilities_e.add_element 'capability'
           capability_e.text = c
         }
@@ -95,16 +94,16 @@ module HrrRbNetconf
       end
 
       def negotiate_capabilities
-        (@local_capabilities & @remote_capabilities).each{ |c| @capabilities.push c }
-        @logger.info { "Negotiated capabilities: #{@capabilities}" }
-        unless @capabilities.any?{ |c| /^urn:ietf:params:netconf:base:\d+\.\d+$/ =~ c }
+        @capabilities = @local_capabilities.negotiate @remote_capabilities
+        @logger.info { "Negotiated capabilities: #{@capabilities.list_loadable}" }
+        unless @capabilities.list_loadable.any?{ |c| /^urn:ietf:params:netconf:base:\d+\.\d+$/ =~ c }
           @logger.error { "No base NETCONF capability negotiated" }
           raise  "No base NETCONF capability negotiated"
         end
       end
 
       def initialize_sender_and_receiver
-        base_capability = @capabilities.select{ |c| /^urn:ietf:params:netconf:base:\d+\.\d+$/ =~ c }.sort.last
+        base_capability = @capabilities.list_loadable.select{ |c| /^urn:ietf:params:netconf:base:\d+\.\d+$/ =~ c }.sort.last
         @logger.info { "Base NETCONF capability: #{base_capability}" }
         @sender   = Capability[base_capability]::Sender.new   @io_w
         @receiver = Capability[base_capability]::Receiver.new @io_r
@@ -112,7 +111,7 @@ module HrrRbNetconf
 
       def operation_loop
         datastore_session = @datastore.new_session self
-        operation = Operation.new @server, self, datastore_session
+        operation = Operation.new @server, self, @capabilities, datastore_session
 
         begin
           loop do

@@ -6,6 +6,7 @@ require 'hrr_rb_netconf/logger'
 require 'hrr_rb_netconf/server/error'
 require 'hrr_rb_netconf/server/errors'
 require 'hrr_rb_netconf/server/datastore'
+require 'hrr_rb_netconf/server/capabilities'
 require 'hrr_rb_netconf/server/session'
 
 module HrrRbNetconf
@@ -15,9 +16,10 @@ module HrrRbNetconf
     SESSION_ID_MAX = 2**32 - 1
     SESSION_ID_MODULO = SESSION_ID_MAX - SESSION_ID_MIN + 1
 
-    def initialize datastore
+    def initialize datastore, capabilities: nil
       @logger = Logger.new self.class.name
       @datastore = datastore
+      @capabilities = capabilities || Capabilities.new
       @mutex = Mutex.new
       @sessions = Hash.new
       @last_session_id = SESSION_ID_MIN - 1
@@ -45,7 +47,7 @@ module HrrRbNetconf
         @mutex.synchronize do
           session_id = allocate_session_id
           @logger.info { "Session ID: #{session_id}" }
-          @sessions[session_id] = Session.new self, @datastore, session_id, io
+          @sessions[session_id] = Session.new self, @capabilities, @datastore, session_id, io
         end
         t = Thread.new {
           @sessions[session_id].start

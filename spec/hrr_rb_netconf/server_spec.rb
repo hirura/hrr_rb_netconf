@@ -21,14 +21,39 @@ RSpec.describe HrrRbNetconf::Server do
   describe '#initialize' do
     let(:db){ 'db' }
     let(:datastore){ HrrRbNetconf::Server::Datastore.new db }
-    let(:server){ described_class.new datastore }
 
-    it "doesn't raise error" do
-      expect { server }.not_to raise_error
+    describe "without capability" do
+      let(:server){ described_class.new datastore }
+
+      it "doesn't raise error" do
+        expect { server }.not_to raise_error
+      end
+
+      it "initializes @capabilities" do
+        expect(server.instance_variable_get('@capabilities').list_all).to eq HrrRbNetconf::Server::Capabilities.new.list_all
+      end
+
+      it "initializes @sessions" do
+        expect(server.instance_variable_get('@sessions')).to eq Hash.new
+      end
     end
 
-    it "initializes @sessions" do
-      expect(server.instance_variable_get('@sessions')).to eq Hash.new
+    describe "without capability" do
+      let(:features){ [] }
+      let(:capabilities){ HrrRbNetconf::Server::Capabilities.new features }
+      let(:server){ described_class.new datastore, capabilities: capabilities }
+
+      it "doesn't raise error" do
+        expect { server }.not_to raise_error
+      end
+
+      it "initializes @capabilities" do
+        expect(server.instance_variable_get('@capabilities').list_all).to eq HrrRbNetconf::Server::Capabilities.new.list_all
+      end
+
+      it "initializes @sessions" do
+        expect(server.instance_variable_get('@sessions')).to eq Hash.new
+      end
     end
   end
 

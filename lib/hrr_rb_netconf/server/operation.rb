@@ -7,14 +7,24 @@ require 'hrr_rb_netconf/server/filter'
 module HrrRbNetconf
   class Server
     class Operation
-      def initialize server, session, datastore_session
+      def initialize server, session, capabilities, datastore_session
         @logger = Logger.new self.class.name
         @server = server
         @session = session
+        @capabilities = capabilities
         @datastore_session = datastore_session
         @models = Hash.new
-        @operations = Hash.new
-        @to_close = false
+        @oper_procs = Hash.new
+
+        load_capabilities
+      end
+
+      def load_capabilities
+        @capabilities.each_loadable{ |c|
+          c.oper_procs.each{ |k, v|
+            @oper_procs[k] = v
+          }
+        }
       end
 
       def run xml_doc
@@ -30,14 +40,7 @@ module HrrRbNetconf
 
         input_e = xml_doc.elements[1]
 
-        raw_output = @datastore_session.run(input_e.name, input_e)
-
-        case input_e.name
-        when 'close-session'
-          @session.close
-        when 'kill-session'
-          @server.close_session Integer(input_e.elements['session-id'].text)
-        end
+        raw_output = @oper_procs[input_e.name].call(@server, @session, @datastore_session, input_e)
 
         raw_output_e = case raw_output
                        when String

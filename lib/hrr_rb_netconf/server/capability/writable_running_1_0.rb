@@ -6,6 +6,8 @@ module HrrRbNetconf
     class Capability
       class WritableRunning_1_0 < Capability
         ID = 'urn:ietf:params:netconf:capability:writable-running:1.0'
+        DEPENDENCIES = []
+        IF_FEATURES  = ['writable-running']
       end
     end
   end

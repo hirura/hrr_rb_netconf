@@ -6,6 +6,8 @@ module HrrRbNetconf
     class Capability
       class RollbackOnError_1_0 < Capability
         ID = 'urn:ietf:params:netconf:capability:rollback-on-error:1.0'
+        DEPENDENCIES = []
+        IF_FEATURES  = ['rollback-on-error']
       end
     end
   end

@@ -6,6 +6,18 @@ module HrrRbNetconf
     class Capability
       class Candidate_1_0 < Capability
         ID = 'urn:ietf:params:netconf:capability:candidate:1.0'
+        DEPENDENCIES = []
+        IF_FEATURES  = ['candidate']
+
+        oper_proc('commit'){ |server, session, datastore, input_e|
+          datastore.run 'commit', input_e
+          '<ok />'
+        }
+
+        oper_proc('discard-changes'){ |server, session, datastore, input_e|
+          datastore.run 'discard-changes', input_e
+          '<ok />'
+        }
       end
     end
   end

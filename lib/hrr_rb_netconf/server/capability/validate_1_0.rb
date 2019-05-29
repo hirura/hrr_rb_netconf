@@ -6,6 +6,13 @@ module HrrRbNetconf
     class Capability
       class Validate_1_0 < Capability
         ID = 'urn:ietf:params:netconf:capability:validate:1.0'
+        DEPENDENCIES = []
+        IF_FEATURES  = ['validate']
+
+        oper_proc('validate'){ |server, session, datastore, input_e|
+          datastore.run 'validate', input_e
+          '<ok />'
+        }
       end
     end
   end

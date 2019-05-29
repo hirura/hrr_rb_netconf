@@ -26,6 +26,40 @@ module HrrRbNetconf
 
         private :__subclass_list__
       end
+
+      class << self
+        def oper_procs
+          @oper_procs || {}
+        end
+
+        def oper_proc oper_name, &blk
+          @oper_procs ||= Hash.new
+          @oper_procs[oper_name] = blk
+        end
+
+        private :oper_proc
+      end
+
+      attr_reader :id
+      attr_accessor :if_features, :dependencies
+
+      def initialize id=nil
+        @id           = id || self.class::ID
+        @if_features  = (self.class::IF_FEATURES rescue [])
+        @dependencies = (self.class::DEPENDENCIES rescue [])
+        @oper_procs   = self.class.oper_procs.inject([]){ |a, (k, v)| a + [[k, v]] }.to_h
+      end
+
+      def oper_procs
+        @oper_procs
+      end
+
+      def oper_proc oper_name, &blk
+        if blk
+          @oper_procs[oper_name] = blk
+        end
+        @oper_procs[oper_name]
+      end
     end
   end
 end
