@@ -2,6 +2,7 @@
 # vim: et ts=2 sw=2
 
 require 'hrr_rb_netconf/logger'
+require 'hrr_rb_netconf/server/model'
 require 'hrr_rb_netconf/server/filter'
 
 module HrrRbNetconf
@@ -24,7 +25,22 @@ module HrrRbNetconf
           c.oper_procs.each{ |k, v|
             @oper_procs[k] = v
           }
+          c.models.each{ |m|
+            oper_name, path, stmt, options = m
+            @models[oper_name] ||= Model.new oper_name
+            @models[oper_name].add path, stmt, options
+          }
         }
+      end
+
+      def validate input_e
+        oper_name = input_e.name
+        model = @models[oper_name]
+        if model
+          model.validate input_e
+        else
+          false
+        end
       end
 
       def run xml_doc
@@ -43,6 +59,11 @@ module HrrRbNetconf
         unless @oper_procs.has_key? input_e.name
           raise Error['operation-not-supported'].new('protocol', 'error')
         end
+
+        unless validate input_e
+          raise Error['operation-not-supported'].new('application', 'error')
+        end
+
         raw_output = @oper_procs[input_e.name].call(@server, @session, @datastore_session, input_e)
 
         raw_output_e = case raw_output
