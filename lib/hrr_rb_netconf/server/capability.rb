@@ -37,7 +37,16 @@ module HrrRbNetconf
           @oper_procs[oper_name] = blk
         end
 
-        private :oper_proc
+        def models
+          @models || []
+        end
+
+        def model oper_name, path, stmt=nil, attrs={}
+          @models ||= Array.new
+          @models.push [oper_name, path, stmt, attrs]
+        end
+
+        private :oper_proc, :model
       end
 
       attr_reader :id
@@ -48,6 +57,7 @@ module HrrRbNetconf
         @if_features  = (self.class::IF_FEATURES rescue [])
         @dependencies = (self.class::DEPENDENCIES rescue [])
         @oper_procs   = self.class.oper_procs.inject([]){ |a, (k, v)| a + [[k, v]] }.to_h
+        @models       = (self.class.models rescue [])
       end
 
       def oper_procs
@@ -59,6 +69,14 @@ module HrrRbNetconf
           @oper_procs[oper_name] = blk
         end
         @oper_procs[oper_name]
+      end
+
+      def models
+        @models
+      end
+
+      def model oper_name, path, stmt=nil, attrs={}
+        @models.push [oper_name, path, stmt, attrs]
       end
     end
   end

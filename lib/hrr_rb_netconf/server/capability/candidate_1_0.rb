@@ -18,6 +18,16 @@ module HrrRbNetconf
           datastore.run 'discard-changes', input_e
           '<ok />'
         }
+
+        model 'get-config',      ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
+        model 'edit-config',     ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+        model 'copy-config',     ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
+        model 'copy-config',     ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+        model 'validate',        ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
+        model 'lock',            ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+        model 'unlock',          ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+        model 'commit',          []
+        model 'discard-changes', []
       end
     end
   end

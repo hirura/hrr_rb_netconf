@@ -13,6 +13,11 @@ module HrrRbNetconf
           datastore.run 'cancel-commit', input_e
           '<ok />'
         }
+
+        model 'commit', ['confirmed'],       'leaf', 'type' => 'empty'
+        model 'commit', ['confirm-timeout'], 'leaf', 'type' => 'integer', 'range' => [1, 2**32-1], 'default' => '600'
+        model 'commit', ['persist'],         'leaf', 'type' => 'string'
+        model 'commit', ['persist-id'],      'leaf', 'type' => 'string'
       end
     end
   end
