@@ -8,6 +8,7 @@ hrr_rb_netconf is a pure Ruby NETCONF server implementation.
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [Supported Capabilities](#supported-capabilities)
 - [Contributing](#contributing)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
@@ -109,19 +110,83 @@ The `demo/server.rb` shows a good example on how to use the library.
 
 ## Supported Capabilities
 
-The following capabilities are currently supported. (Actually, just sending the capabilities in `hello` for now.)
+The following capabilities are currently supported.
 
 - urn:ietf:params:netconf:base:1.0
+
+  Required datastore operations:
+  - get
+  - get-config
+  - edit-config
+  - copy-config
+  - delete-config
+  - lock
+  - unlock
+  - close-session
+
 - urn:ietf:params:netconf:base:1.1
+
+  Required datastore operations:
+  - get
+  - get-config
+  - edit-config
+  - copy-config
+  - delete-config
+  - lock
+  - unlock
+  - close-session
+
 - urn:ietf:params:netconf:capability:candidate:1.0
+
+  Required feature: candidate
+
+  Required datastore operations:
+  - commit
+  - discard-changes
+
 - urn:ietf:params:netconf:capability:confirmed-commit:1.0
+
+  Required feature: confirmed-commit
+
+  Required datastore operations:
+  - cancel-commit
+
 - urn:ietf:params:netconf:capability:confirmed-commit:1.1
+
+  Required feature: confirmed-commit
+
+  Required datastore operations:
+  - cancel-commit
+
 - urn:ietf:params:netconf:capability:rollback-on-error:1.0
+
+  Required feature: rollback-on-error
+
 - urn:ietf:params:netconf:capability:startup:1.0
+
+  Required feature: startup
+
 - urn:ietf:params:netconf:capability:validate:1.0
+
+  Required feature: validate
+
+  Required datastore operations:
+  - validate
+
 - urn:ietf:params:netconf:capability:validate:1.1
+
+  Required feature: validate
+
+  Required datastore operations:
+  - validate
+
 - urn:ietf:params:netconf:capability:writable-running:1.0
+
+  Required feature: writable-running
+
 - urn:ietf:params:netconf:capability:xpath:1.0
+
+  Required feature: xpath
 
 ## Contributing
 
