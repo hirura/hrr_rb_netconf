@@ -10,14 +10,14 @@ module HrrRbNetconf
       def initialize features=nil, capabilities_h=nil
         @features = features
         unless capabilities_h
-          @caps = Capability.list.inject([]){ |a, b| a + [[b, Capability[b].new]] }.to_h
+          @caps = Capability.list.inject({}){ |a, b| a.merge({b => Capability[b].new}) }
         else
           @caps = capabilities_h
         end
       end
 
       def negotiate remote_capabilities
-        capabilities_h = (@caps.keys & remote_capabilities).map{ |k| [k, @caps[k]] }.to_h
+        capabilities_h = (@caps.keys & remote_capabilities).inject({}){ |a, b| a.merge({k => @caps[k]}) }
         Capabilities.new @features, capabilities_h
       end
 

@@ -56,7 +56,7 @@ module HrrRbNetconf
         @id           = id || self.class::ID
         @if_features  = (self.class::IF_FEATURES rescue [])
         @dependencies = (self.class::DEPENDENCIES rescue [])
-        @oper_procs   = self.class.oper_procs.inject([]){ |a, (k, v)| a + [[k, v]] }.to_h
+        @oper_procs   = self.class.oper_procs.dup
         @models       = (self.class.models rescue [])
       end
 
