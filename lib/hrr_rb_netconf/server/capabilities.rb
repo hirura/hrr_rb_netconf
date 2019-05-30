@@ -41,16 +41,24 @@ module HrrRbNetconf
 
       def list_loadable
         filtered_by_features = @caps.select{ |k, v| if @features.nil? then true else (v.if_features - @features).empty? end }
-        filtered_by_dependencies = filtered_by_features.select{ |k, v| v.dependencies.all?{ |d| filtered_by_features.has_key? d } }
-        each_node = lambda {|&b| filtered_by_dependencies.each_key(&b) }
-        each_child = lambda {|n, &b| filtered_by_dependencies[n].dependencies.each(&b) }
-        TSort.tsort(each_node, each_child)
+        @filtered_by_dependencies = filtered_by_features.select{ |k, v| v.dependencies.all?{ |d| filtered_by_features.has_key? d } }
+        tsort
       end
 
       def each_loadable
         list_loadable.each do |c|
           yield @caps[c]
         end
+      end
+
+      include TSort
+
+      def tsort_each_node &blk
+        @filtered_by_dependencies.each_key(&blk)
+      end
+
+      def tsort_each_child node, &blk
+        @filtered_by_dependencies[node].dependencies.each(&blk)
       end
     end
   end
