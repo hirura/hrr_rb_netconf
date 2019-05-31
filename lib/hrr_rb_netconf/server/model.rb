@@ -52,7 +52,7 @@ module HrrRbNetconf
               when 'choice'
                 validate_recursively c, xml_e, validated: validated
               else
-                raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, 'message' => 'Not implemented')
+                raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, message: 'Not implemented')
               end
             }
           end && (xml_e.elements.to_a.map{|e| e.name} - validated).empty?
@@ -70,7 +70,7 @@ module HrrRbNetconf
             xml_e != nil && (REXML::Document.new(xml_e.text) rescue false)
           when 'inet:uri'
             xml_e != nil
-            raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{node.name}: #{node.stmt}"}, 'message' => 'Not implemented: type inet:uri')
+            raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{node.name}: #{node.stmt}"}, message: 'Not implemented: type inet:uri')
           when 'integer'
             if xml_e == nil && node.options['default']
               parent_xml_e.add_element(node.name).text = node.options['default']
@@ -103,7 +103,7 @@ module HrrRbNetconf
             }
           end
         else
-          raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, 'message' => 'Not implemented')
+          raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, message: 'Not implemented')
         end
       end
 

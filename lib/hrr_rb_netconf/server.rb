@@ -81,7 +81,7 @@ module HrrRbNetconf
       @lock_mutex.synchronize do
         if @locks.has_key? target
           @logger.info { "Lock failed, lock is already held by session-id: #{@locks[target]}" }
-          raise Error['lock-denied'].new('protocol', 'error', 'message': 'Lock failed, lock is already held', 'info': {'session-id' => @locks[target].to_s})
+          raise Error['lock-denied'].new('protocol', 'error', info: {'session-id' => @locks[target].to_s}, message: 'Lock failed, lock is already held')
         else
           @locks[target] = session_id
         end
