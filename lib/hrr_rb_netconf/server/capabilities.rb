@@ -17,7 +17,7 @@ module HrrRbNetconf
       end
 
       def negotiate remote_capabilities
-        capabilities_h = (@caps.keys & remote_capabilities).inject({}){ |a, b| a.merge({k => @caps[k]}) }
+        capabilities_h = (@caps.keys & remote_capabilities).inject({}){ |a, b| a.merge({b => @caps[b]}) }
         Capabilities.new @features, capabilities_h
       end
 
