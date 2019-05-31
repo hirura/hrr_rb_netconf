@@ -22,6 +22,8 @@ module HrrRbNetconf
       @capabilities = capabilities || Capabilities.new
       @mutex = Mutex.new
       @sessions = Hash.new
+      @locks = Hash.new
+      @lock_mutex = Mutex.new
       @last_session_id = SESSION_ID_MIN - 1
     end
 
@@ -60,6 +62,9 @@ module HrrRbNetconf
       else
         @logger.info { "Session closed: Session ID: #{session_id}" }
       ensure
+        @lock_mutex.synchronize do
+          @locks.delete_if{ |tgt, sid| sid == session_id }
+        end
         @mutex.synchronize do
           delete_session session_id
         end
@@ -69,6 +74,35 @@ module HrrRbNetconf
     def close_session session_id
       @logger.info { "Close session: Session ID: #{session_id}" }
       @sessions[session_id].close
+    end
+
+    def lock target, session_id
+      @logger.info { "Lock: Target: #{target}, Session ID: #{session_id}" }
+      @lock_mutex.synchronize do
+        if @locks.has_key? target
+          @logger.info { "Lock failed, lock is already held by session-id: #{@locks[target]}" }
+          raise Error['lock-denied'].new('protocol', 'error', 'message': 'Lock failed, lock is already held', 'info': {'session-id' => @locks[target].to_s})
+        else
+          @locks[target] = session_id
+        end
+      end
+    end
+
+    def unlock target, session_id
+      @logger.info { "Unlock: Target: #{target}, Session ID: #{session_id}" }
+      @lock_mutex.synchronize do
+        if @locks.has_key? target
+          if @locks[target] == session_id
+            @locks.delete target
+          else
+            @logger.info { "Unlock failed, lock is held by session-id: #{@locks[target]}" }
+            raise Error['operation-failed'].new('protocol', 'error')
+          end
+        else
+          @logger.info { "Unlock failed, lock is not held" }
+          raise Error['operation-failed'].new('protocol', 'error')
+        end
+      end
     end
   end
 end

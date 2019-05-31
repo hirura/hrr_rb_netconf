@@ -36,12 +36,21 @@ module HrrRbNetconf
         }
 
         oper_proc('lock'){ |server, session, datastore, input_e|
-          datastore.run 'lock', input_e
-          '<ok />'
+          target = input_e.elements['target'].elements[1].name
+          session.lock target
+          begin
+            datastore.run 'lock', input_e
+            '<ok />'
+          rescue
+            session.unlock target
+            raise
+          end
         }
 
         oper_proc('unlock'){ |server, session, datastore, input_e|
           datastore.run 'unlock', input_e
+          target = input_e.elements['target'].elements[1].name
+          session.unlock target
           '<ok />'
         }
 

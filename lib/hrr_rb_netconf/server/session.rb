@@ -157,6 +157,14 @@ module HrrRbNetconf
         end
         @logger.info { "Exit operation_loop" }
       end
+
+      def lock target
+        @server.lock target, @session_id
+      end
+
+      def unlock target
+        @server.unlock target, @session_id
+      end
     end
   end
 end
