@@ -26,7 +26,7 @@ module HrrRbNetconf
 
       def add path, stmt, options
         if path.size > 0
-          add_recursively @tree, path, stmt, options
+          add_recursively @tree, path.dup, stmt, options
         end
       end
 
