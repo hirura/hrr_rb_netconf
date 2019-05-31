@@ -64,7 +64,7 @@ module HrrRbNetconf
           raise Error['operation-not-supported'].new('application', 'error')
         end
 
-        raw_output = @oper_procs[input_e.name].call(@server, @session, @datastore_session, input_e)
+        raw_output = @oper_procs[input_e.name].call(@session, @datastore_session, input_e)
 
         raw_output_e = case raw_output
                        when String

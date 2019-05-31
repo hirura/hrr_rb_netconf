@@ -9,7 +9,7 @@ module HrrRbNetconf
         DEPENDENCIES = ['urn:ietf:params:netconf:capability:candidate:1.0']
         IF_FEATURES  = ['candidate', 'confirmed-commit']
 
-        oper_proc('cancel-commit'){ |server, session, datastore, input_e|
+        oper_proc('cancel-commit'){ |session, datastore, input_e|
           datastore.run 'cancel-commit', input_e
           '<ok />'
         }

@@ -9,12 +9,12 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = ['candidate']
 
-        oper_proc('commit'){ |server, session, datastore, input_e|
+        oper_proc('commit'){ |session, datastore, input_e|
           datastore.run 'commit', input_e
           '<ok />'
         }
 
-        oper_proc('discard-changes'){ |server, session, datastore, input_e|
+        oper_proc('discard-changes'){ |session, datastore, input_e|
           datastore.run 'discard-changes', input_e
           '<ok />'
         }

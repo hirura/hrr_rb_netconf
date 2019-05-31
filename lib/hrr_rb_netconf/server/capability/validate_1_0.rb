@@ -9,7 +9,7 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = ['validate']
 
-        oper_proc('validate'){ |server, session, datastore, input_e|
+        oper_proc('validate'){ |session, datastore, input_e|
           datastore.run 'validate', input_e
           '<ok />'
         }

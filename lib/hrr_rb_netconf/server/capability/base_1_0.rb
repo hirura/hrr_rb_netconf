@@ -12,30 +12,30 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = []
 
-        oper_proc('get'){ |server, session, datastore, input_e|
+        oper_proc('get'){ |session, datastore, input_e|
           datastore.run 'get', input_e
         }
 
-        oper_proc('get-config'){ |server, session, datastore, input_e|
+        oper_proc('get-config'){ |session, datastore, input_e|
           datastore.run 'get-config', input_e
         }
 
-        oper_proc('edit-config'){ |server, session, datastore, input_e|
+        oper_proc('edit-config'){ |session, datastore, input_e|
           datastore.run 'edit-config', input_e
           '<ok />'
         }
 
-        oper_proc('copy-config'){ |server, session, datastore, input_e|
+        oper_proc('copy-config'){ |session, datastore, input_e|
           datastore.run 'copy-config', input_e
           '<ok />'
         }
 
-        oper_proc('delete-config'){ |server, session, datastore, input_e|
+        oper_proc('delete-config'){ |session, datastore, input_e|
           datastore.run 'delete-config', input_e
           '<ok />'
         }
 
-        oper_proc('lock'){ |server, session, datastore, input_e|
+        oper_proc('lock'){ |session, datastore, input_e|
           target = input_e.elements['target'].elements[1].name
           session.lock target
           begin
@@ -47,21 +47,21 @@ module HrrRbNetconf
           end
         }
 
-        oper_proc('unlock'){ |server, session, datastore, input_e|
+        oper_proc('unlock'){ |session, datastore, input_e|
           datastore.run 'unlock', input_e
           target = input_e.elements['target'].elements[1].name
           session.unlock target
           '<ok />'
         }
 
-        oper_proc('close-session'){ |server, session, datastore, input_e|
+        oper_proc('close-session'){ |session, datastore, input_e|
           datastore.run 'close-session', input_e
           session.close
           '<ok />'
         }
 
-        oper_proc('kill-session'){ |server, session, datastore, input_e|
-          server.close_session Integer(input_e.elements['session-id'].text)
+        oper_proc('kill-session'){ |session, datastore, input_e|
+          session.close_other Integer(input_e.elements['session-id'].text)
           '<ok />'
         }
 
