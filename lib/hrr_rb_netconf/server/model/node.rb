@@ -5,8 +5,9 @@ module HrrRbNetconf
   class Server
     class Model
       class Node
-        attr_reader :name, :stmt, :options, :children
-        def initialize name, stmt, options
+        attr_reader :capability, :name, :stmt, :options, :children
+        def initialize capability, name, stmt, options
+          @capability = capability
           @name = name
           @stmt = stmt
           @options = options

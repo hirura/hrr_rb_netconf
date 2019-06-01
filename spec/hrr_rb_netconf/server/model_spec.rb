@@ -49,7 +49,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
         EOB
       }
       let(:model_entries){ [
-        [['child1'], 'container', {}],
+        [nil, ['child1'], 'container', {}],
       ] }
 
       it "matches to input with children" do
@@ -64,7 +64,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
         EOB
       }
       let(:model_entries){ [
-        [['child1'], 'leaf', {'type' => 'empty'} ],
+        [nil, ['child1'], 'leaf', {'type' => 'empty'} ],
       ] }
 
       it "matches to input" do
@@ -80,7 +80,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
         EOB
       }
       let(:model_entries){ [
-        [['child1'], 'leaf', {'type' => 'empty'}  ],
+        [nil, ['child1'], 'leaf', {'type' => 'empty'}  ],
       ] }
 
       it "matches to input" do
@@ -100,8 +100,8 @@ RSpec.describe HrrRbNetconf::Server::Model do
         EOB
       }
       let(:model_entries){ [
-        [['child1'], 'container', {}  ],
-        [['child1', 'child2'], 'leaf', {'type' => 'anyxml'}  ],
+        [nil, ['child1'], 'container', {}  ],
+        [nil, ['child1', 'child2'], 'leaf', {'type' => 'anyxml'}  ],
       ] }
 
       it "matches to input" do
@@ -118,7 +118,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
           EOB
         }
         let(:model_entries){ [
-          [['child1'], 'leaf', {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}  ],
+          [nil, ['child1'], 'leaf', {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}  ],
         ] }
 
         it "matches to input" do
@@ -134,7 +134,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
                          EOB
         }
         let(:model_entries){ [
-          [['child1'], 'leaf', {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}  ],
+          [nil, ['child1'], 'leaf', {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}  ],
         ] }
 
         it "doesn't match to input" do
@@ -149,7 +149,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
         EOB
         }
         let(:model_entries){ [
-          [['child1'], 'leaf', {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}  ],
+          [nil, ['child1'], 'leaf', {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}  ],
         ] }
 
         it "matches to input" do
@@ -173,7 +173,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
             EOB
           }
           let(:model_entries){ [
-            [['child1'], 'leaf', {'type' => 'integer'}  ],
+            [nil, ['child1'], 'leaf', {'type' => 'integer'}  ],
           ] }
 
           it "matches to input" do
@@ -189,7 +189,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
             EOB
           }
           let(:model_entries){ [
-            [['child1'], 'leaf', {'type' => 'integer'}  ],
+            [nil, ['child1'], 'leaf', {'type' => 'integer'}  ],
           ] }
 
           it "doesn't match to input" do
@@ -207,7 +207,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
             EOB
           }
           let(:model_entries){ [
-            [['child1'], 'leaf', {'type' => 'integer', 'range' => [-10, 10]}  ],
+            [nil, ['child1'], 'leaf', {'type' => 'integer', 'range' => [-10, 10]}  ],
           ] }
 
           it "matches to input" do
@@ -223,7 +223,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
             EOB
           }
           let(:model_entries){ [
-            [['child1'], 'leaf', {'type' => 'integer', 'range' => [-10, 10]}  ],
+            [nil, ['child1'], 'leaf', {'type' => 'integer', 'range' => [-10, 10]}  ],
           ] }
 
           it "doesn't match to input" do
@@ -239,7 +239,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
           EOB
         }
         let(:model_entries){ [
-          [['child1'], 'leaf', {'type' => 'integer', 'default' => '123'}  ],
+          [nil, ['child1'], 'leaf', {'type' => 'integer', 'default' => '123'}  ],
         ] }
 
         it "matches to input" do
@@ -263,7 +263,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
             EOB
           }
           let(:model_entries){ [
-            [['child1'], 'leaf', {'type' => 'string'}  ],
+            [nil, ['child1'], 'leaf', {'type' => 'string'}  ],
           ] }
 
           it "matches to input" do
@@ -279,7 +279,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
             EOB
           }
           let(:model_entries){ [
-            [['child1'], 'leaf', {'type' => 'string'}  ],
+            [nil, ['child1'], 'leaf', {'type' => 'string'}  ],
           ] }
 
           it "doesn't match to input" do
@@ -295,7 +295,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
           EOB
         }
         let(:model_entries){ [
-          [['child1'], 'leaf', {'type' => 'string', 'default' => 'abc'}  ],
+          [nil, ['child1'], 'leaf', {'type' => 'string', 'default' => 'abc'}  ],
         ] }
 
         it "matches to input" do
@@ -319,14 +319,56 @@ RSpec.describe HrrRbNetconf::Server::Model do
         EOB
       }
       let(:model_entries){ [
-        [['child1'],                      'container', {}],
-        [['child1', 'choice1'],           'choice',    {'mandatory' => true}],
-        [['child1', 'choice1', 'child2'], 'leaf',      {'type' => 'empty'}  ],
-        [['child1', 'choice1', 'child3'], 'leaf',      {'type' => 'empty'}  ],
+        [nil, ['child1'],                      'container', {}],
+        [nil, ['child1', 'choice1'],           'choice',    {'mandatory' => true}],
+        [nil, ['child1', 'choice1', 'child2'], 'leaf',      {'type' => 'empty'}  ],
+        [nil, ['child1', 'choice1', 'child3'], 'leaf',      {'type' => 'empty'}  ],
       ] }
 
       it "matches to input" do
         expect(model.validate input_e).to be true
+      end
+    end
+
+    describe 'Validation option' do
+      describe 'with correct target' do
+        let(:input_str){ <<-'EOB'
+        <my-operation>
+          <child1>
+            <child2>target</child2>
+          </child1>
+        </my-operation>
+                         EOB
+        }
+        let(:model_entries){ [
+          [nil,                              ['child1'],                      'container', {}],
+          [nil,                              ['child1', 'choice1'],           'choice',    {'mandatory' => true}],
+          [{'dummy-capability' => 'target'}, ['child1', 'choice1', 'child2'], 'leaf',      {'type' => 'string', 'validation' => proc { |cap, node| p cap; p node; cap['dummy-capability'] == node.text }}],
+        ] }
+
+        it "matches to input" do
+          expect(model.validate input_e).to be true
+        end
+      end
+
+      describe 'with correct target' do
+        let(:input_str){ <<-'EOB'
+        <my-operation>
+          <child1>
+            <child2>invalid</child2>
+          </child1>
+        </my-operation>
+                         EOB
+        }
+        let(:model_entries){ [
+          [nil,                              ['child1'],                      'container', {}],
+          [nil,                              ['child1', 'choice1'],           'choice',    {'mandatory' => true}],
+          [{'dummy-capability' => 'target'}, ['child1', 'choice1', 'child2'], 'leaf',      {'type' => 'string', 'validation' => proc { |cap, node| cap['dummy-capability'] == node.text }}],
+        ] }
+
+        it "matches to input" do
+          expect(model.validate input_e).to be false
+        end
       end
     end
   end
@@ -335,7 +377,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<get>' do
       let(:model){ described_class.new 'get' }
       let(:model_entries){ [
-        [['filter'], 'leaf', {'type' => 'anyxml'}],
+        [nil, ['filter'], 'leaf', {'type' => 'anyxml'}],
       ] }
 
       describe 'without filter' do
@@ -369,12 +411,12 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<get-config>' do
       let(:model){ described_class.new 'get-config' }
       let(:model_entries){ [
-        [['source'],                               'container', {}],
-        [['source', 'config-source'],              'choice',    {'mandatory' => true}],
-        [['source', 'config-source', 'candidate'], 'leaf',      {'type' => 'empty'}],
-        [['source', 'config-source', 'running'],   'leaf',      {'type' => 'empty'}],
-        [['source', 'config-source', 'startup'],   'leaf',      {'type' => 'empty'}],
-        [['filter'],                               'leaf',      {'type' => 'anyxml'}],
+        [nil, ['source'],                               'container', {}],
+        [nil, ['source', 'config-source'],              'choice',    {'mandatory' => true}],
+        [nil, ['source', 'config-source', 'candidate'], 'leaf',      {'type' => 'empty'}],
+        [nil, ['source', 'config-source', 'running'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['source', 'config-source', 'startup'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['filter'],                               'leaf',      {'type' => 'anyxml'}],
       ] }
 
       describe 'without leaf' do
@@ -428,16 +470,16 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<edit-config>' do
       let(:model){ described_class.new 'edit-config' }
       let(:model_entries){ [
-        [['target'],                               'container', {}],
-        [['target', 'config-target'],              'choice',    {'mandatory' => true}],
-        [['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
-        [['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
-        [['default-operation'],                    'leaf',      {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}],
-        [['test-option'],                          'leaf',      {'type' => 'enumeration', 'enum' => ['test-then-set', 'set', 'test-only'], 'default' => 'test-then-set'}],
-        [['error-option'],                         'leaf',      {'type' => 'enumeration', 'enum' => ['stop-on-error', 'continue-on-error', 'rollback-on-error'], 'default' => 'stop-on-error'}],
-        [['edit-content'],                         'choice',    {'mandatory' => true}],
-        [['edit-content', 'config'],               'leaf',      {'type' => 'anyxml'}],
-        #[['edit-content', 'url'],                  'leaf',      {'type' => 'inet:uri'}],
+        [nil, ['target'],                               'container', {}],
+        [nil, ['target', 'config-target'],              'choice',    {'mandatory' => true}],
+        [nil, ['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
+        [nil, ['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['default-operation'],                    'leaf',      {'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'}],
+        [nil, ['test-option'],                          'leaf',      {'type' => 'enumeration', 'enum' => ['test-then-set', 'set', 'test-only'], 'default' => 'test-then-set'}],
+        [nil, ['error-option'],                         'leaf',      {'type' => 'enumeration', 'enum' => ['stop-on-error', 'continue-on-error', 'rollback-on-error'], 'default' => 'stop-on-error'}],
+        [nil, ['edit-content'],                         'choice',    {'mandatory' => true}],
+        [nil, ['edit-content', 'config'],               'leaf',      {'type' => 'anyxml'}],
+        #[nil, ['edit-content', 'url'],                  'leaf',      {'type' => 'inet:uri'}],
       ] }
 
       describe 'without leaf' do
@@ -491,19 +533,19 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<copy-config>' do
       let(:model){ described_class.new 'copy-config' }
       let(:model_entries){ [
-        [['target'],                               'container', {}],
-        [['target', 'config-target'],              'choice',    {'mandatory' => true}],
-        [['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
-        [['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
-        [['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
-        #[['target', 'config-target', 'url'],       'leaf',      {'type' => 'inet:uri'}],
-        [['source'],                               'container', {}],
-        [['source', 'config-source'],              'choice',    {'mandatory' => true}],
-        [['source', 'config-source', 'candidate'], 'leaf',      {'type' => 'empty'}],
-        [['source', 'config-source', 'running'],   'leaf',      {'type' => 'empty'}],
-        [['source', 'config-source', 'startup'],   'leaf',      {'type' => 'empty'}],
-        #[['source', 'config-source', 'url'],       'leaf',      {'type' => 'inet:uri'}],
-        [['source', 'config-source', 'config'],    'leaf',      {'type' => 'anyxml'}],
+        [nil, ['target'],                               'container', {}],
+        [nil, ['target', 'config-target'],              'choice',    {'mandatory' => true}],
+        [nil, ['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
+        [nil, ['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
+        #[nil, ['target', 'config-target', 'url'],       'leaf',      {'type' => 'inet:uri'}],
+        [nil, ['source'],                               'container', {}],
+        [nil, ['source', 'config-source'],              'choice',    {'mandatory' => true}],
+        [nil, ['source', 'config-source', 'candidate'], 'leaf',      {'type' => 'empty'}],
+        [nil, ['source', 'config-source', 'running'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['source', 'config-source', 'startup'],   'leaf',      {'type' => 'empty'}],
+        #[nil, ['source', 'config-source', 'url'],       'leaf',      {'type' => 'inet:uri'}],
+        [nil, ['source', 'config-source', 'config'],    'leaf',      {'type' => 'anyxml'}],
       ] }
 
       describe 'without leaf' do
@@ -545,10 +587,10 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<delete-config>' do
       let(:model){ described_class.new 'delete-config' }
       let(:model_entries){ [
-        [['target'],                               'container', {}],
-        [['target', 'config-target'],              'choice',    {'mandatory' => true}],
-        [['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
-        #[['target', 'config-target', 'url'],       'leaf',      {'type' => 'inet:uri'}],
+        [nil, ['target'],                               'container', {}],
+        [nil, ['target', 'config-target'],              'choice',    {'mandatory' => true}],
+        [nil, ['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
+        #[nil, ['target', 'config-target', 'url'],       'leaf',      {'type' => 'inet:uri'}],
       ] }
 
       describe 'without leaf' do
@@ -584,11 +626,11 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<lock>' do
       let(:model){ described_class.new 'lock' }
       let(:model_entries){ [
-        [['target'],                               'container', {}],
-        [['target', 'config-target'],              'choice',    {'mandatory' => true}],
-        [['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
-        [['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
-        [['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['target'],                               'container', {}],
+        [nil, ['target', 'config-target'],              'choice',    {'mandatory' => true}],
+        [nil, ['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
+        [nil, ['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
       ] }
 
       describe 'without leaf' do
@@ -624,11 +666,11 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<unlock>' do
       let(:model){ described_class.new 'unlock' }
       let(:model_entries){ [
-        [['target'],                               'container', {}],
-        [['target', 'config-target'],              'choice',    {'mandatory' => true}],
-        [['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
-        [['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
-        [['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['target'],                               'container', {}],
+        [nil, ['target', 'config-target'],              'choice',    {'mandatory' => true}],
+        [nil, ['target', 'config-target', 'candidate'], 'leaf',      {'type' => 'empty'}],
+        [nil, ['target', 'config-target', 'running'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['target', 'config-target', 'startup'],   'leaf',      {'type' => 'empty'}],
       ] }
 
       describe 'without leaf' do
@@ -664,7 +706,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<close-session>' do
       let(:model){ described_class.new 'close-session' }
       let(:model_entries){ [
-        [[], nil, {}],
+        [nil, [], nil, {}],
       ] }
 
       describe 'without leaf' do
@@ -696,7 +738,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<kill-session>' do
       let(:model){ described_class.new 'kill-session' }
       let(:model_entries){ [
-        [['session-id'], 'leaf', {'type' => 'integer', 'range' => [1, 2**32-1]}],
+        [nil, ['session-id'], 'leaf', {'type' => 'integer', 'range' => [1, 2**32-1]}],
       ] }
 
 =begin
@@ -730,10 +772,10 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<commit>' do
       let(:model){ described_class.new 'commit' }
       let(:model_entries){ [
-        [['confirmed'],       'leaf', {'type' => 'empty'}],
-        [['confirm-timeout'], 'leaf', {'type' => 'integer', 'range' => [1, 2**32-1], 'default' => '600'}],
-        [['persist'],         'leaf', {'type' => 'string'}],
-        [['persist-id'],      'leaf', {'type' => 'string'}],
+        [nil, ['confirmed'],       'leaf', {'type' => 'empty'}],
+        [nil, ['confirm-timeout'], 'leaf', {'type' => 'integer', 'range' => [1, 2**32-1], 'default' => '600'}],
+        [nil, ['persist'],         'leaf', {'type' => 'string'}],
+        [nil, ['persist-id'],      'leaf', {'type' => 'string'}],
       ] }
 
       describe 'without leaf' do
@@ -767,7 +809,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<discard-changes>' do
       let(:model){ described_class.new 'discard-changes' }
       let(:model_entries){ [
-        [[], nil, {}],
+        [nil, [], nil, {}],
       ] }
 
       describe 'without leaf' do
@@ -799,7 +841,7 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<cancel-commit>' do
       let(:model){ described_class.new 'cancel-commit' }
       let(:model_entries){ [
-        [['persist-id'], 'leaf', {'type' => 'string'}],
+        [nil, ['persist-id'], 'leaf', {'type' => 'string'}],
       ] }
 
 =begin
@@ -833,13 +875,13 @@ RSpec.describe HrrRbNetconf::Server::Model do
     describe '<validate>' do
       let(:model){ described_class.new 'validate' }
       let(:model_entries){ [
-        [['source'],                               'container', {}],
-        [['source', 'config-source'],              'choice',    {'mandatory' => true}],
-        [['source', 'config-source', 'candidate'], 'leaf',      {'type' => 'empty'}],
-        [['source', 'config-source', 'running'],   'leaf',      {'type' => 'empty'}],
-        [['source', 'config-source', 'startup'],   'leaf',      {'type' => 'empty'}],
-        #[['source', 'config-source', 'url'],       'leaf',      {'type' => 'inet:uri'}],
-        [['source', 'config-source', 'config'],    'leaf',      {'type' => 'anyxml'}],
+        [nil, ['source'],                               'container', {}],
+        [nil, ['source', 'config-source'],              'choice',    {'mandatory' => true}],
+        [nil, ['source', 'config-source', 'candidate'], 'leaf',      {'type' => 'empty'}],
+        [nil, ['source', 'config-source', 'running'],   'leaf',      {'type' => 'empty'}],
+        [nil, ['source', 'config-source', 'startup'],   'leaf',      {'type' => 'empty'}],
+        #[nil, ['source', 'config-source', 'url'],       'leaf',      {'type' => 'inet:uri'}],
+        [nil, ['source', 'config-source', 'config'],    'leaf',      {'type' => 'anyxml'}],
       ] }
 
       describe 'without leaf' do

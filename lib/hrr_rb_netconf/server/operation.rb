@@ -28,7 +28,7 @@ module HrrRbNetconf
           c.models.each{ |m|
             oper_name, path, stmt, options = m
             @models[oper_name] ||= Model.new oper_name
-            @models[oper_name].add path, stmt, options
+            @models[oper_name].add c, path, stmt, options
           }
         }
       end

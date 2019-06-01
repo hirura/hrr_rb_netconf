@@ -10,23 +10,23 @@ module HrrRbNetconf
     class Model
       def initialize operation
         @operation = operation
-        @tree = Node.new operation, 'root', {}
+        @tree = Node.new nil, operation, 'root', {}
       end
 
-      def add_recursively node, path, stmt, options
+      def add_recursively capability, node, path, stmt, options
         name = path.shift
         case path.size
         when 0
-          node.children.push Node.new name, stmt, options
+          node.children.push Node.new capability, name, stmt, options
         else
           child_node = node.children.find{|n| name == n.name}
-          add_recursively child_node, path, stmt, options
+          add_recursively capability, child_node, path, stmt, options
         end
       end
 
-      def add path, stmt, options
+      def add capability, path, stmt, options
         if path.size > 0
-          add_recursively @tree, path.dup, stmt, options
+          add_recursively capability, @tree, path.dup, stmt, options
         end
       end
 
@@ -45,7 +45,11 @@ module HrrRbNetconf
               when 'leaf'
                 validated.push c.name
                 if xml_e.elements[c.name].nil? && c.options['default'].nil?
-                  true
+                  if c.options['validation'].nil?
+                    true
+                  else
+                    raise Error['operation-failed'].new('application', 'error', message: 'Not implemented')
+                  end
                 else
                   validate_recursively c, xml_e.elements[c.name], parent_xml_e: xml_e
                 end
@@ -87,7 +91,11 @@ module HrrRbNetconf
             if xml_e == nil && node.options['default']
               parent_xml_e.add_element(node.name).text = node.options['default']
             else
-              xml_e != nil && xml_e.has_text?
+              if node.options['validation'].nil?
+                xml_e != nil && xml_e.has_text?
+              else
+                xml_e != nil && xml_e.has_text? && node.options['validation'].call(node.capability, xml_e)
+              end
             end
           end
         when 'choice'
