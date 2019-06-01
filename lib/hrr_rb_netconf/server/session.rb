@@ -9,6 +9,8 @@ require 'hrr_rb_netconf/server/operation'
 module HrrRbNetconf
   class Server
     class Session
+      attr_reader :session_id
+
       def initialize server, capabilities, datastore, session_id, io
         @logger = Logger.new self.class.name
         @server = server
