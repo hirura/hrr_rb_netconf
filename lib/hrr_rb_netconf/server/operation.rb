@@ -22,10 +22,10 @@ module HrrRbNetconf
 
       def load_capabilities
         @capabilities.each_loadable{ |c|
+          @logger.debug { "Load capability: #{c.id}" }
           c.oper_procs.each{ |k, v|
             @oper_procs[k] = v
           }
-          p @strict_capabilities
           if @strict_capabilities
             c.models.each{ |m|
               oper_name, path, stmt, options = m
