@@ -114,7 +114,7 @@ module HrrRbNetconf
 
       def operation_loop
         datastore_session = @datastore.new_session self
-        operation = Operation.new @server, self, @capabilities, datastore_session, @strict_capabilities
+        operation = Operation.new self, @capabilities, datastore_session, @strict_capabilities
 
         begin
           loop do

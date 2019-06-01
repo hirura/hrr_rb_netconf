@@ -8,9 +8,8 @@ require 'hrr_rb_netconf/server/filter'
 module HrrRbNetconf
   class Server
     class Operation
-      def initialize server, session, capabilities, datastore_session, strict_capabilities
+      def initialize session, capabilities, datastore_session, strict_capabilities
         @logger = Logger.new self.class.name
-        @server = server
         @session = session
         @capabilities = capabilities
         @datastore_session = datastore_session
