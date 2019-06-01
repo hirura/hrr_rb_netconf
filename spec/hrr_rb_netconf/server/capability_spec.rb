@@ -44,4 +44,68 @@ RSpec.describe HrrRbNetconf::Server::Capability do
       end
     end
   end
+
+  describe "#negotiate" do
+    let(:capability){ described_class.new id }
+
+    describe "with same capability" do
+      let(:id){ 'urn:cap1:1.0' }
+      let(:other_id){ 'urn:cap1:1.0' }
+
+      it "returns original capability" do
+        expect(capability.negotiate other_id).to eq capability
+      end
+    end
+
+    describe "with different version capability" do
+      let(:id){ 'urn:cap1:1.0' }
+      let(:other_id){ 'urn:cap1:1.1' }
+
+      it "returns nil" do
+        expect(capability.negotiate other_id).to be nil
+      end
+    end
+
+    describe "with different version capability but version_proc always returns same value" do
+      let(:id){ 'urn:cap1:1.0' }
+      let(:other_id){ 'urn:cap1:1.1' }
+
+      it "returns nil" do
+        capability.version_proc { '1.0' }
+        expect(capability.negotiate other_id).to eq capability
+      end
+    end
+
+    describe "with same version capability but partial match query values" do
+      let(:id){ 'urn:cap1:1.0' }
+      let(:other_id){ 'urn:cap1:1.0?scheme=bar,baz' }
+
+      it "returns same capability with common queries" do
+        capability.queries = {'scheme' => ['foo', 'bar']}
+        expect(capability.negotiate(other_id).id).to eq 'urn:cap1:1.0?scheme=bar'
+      end
+    end
+
+    describe "with same version capability but non match query values" do
+      let(:id){ 'urn:cap1:1.0' }
+      let(:other_id){ 'urn:cap1:1.0?scheme=baz' }
+
+      it "returns same capability with common queries" do
+        capability.queries = {'scheme' => ['foo', 'bar']}
+        expect(capability.negotiate(other_id).id).to eq 'urn:cap1:1.0'
+      end
+    end
+
+    describe "with same version capability that version is set as query" do
+      let(:id){ 'urn:cap1' }
+      let(:other_id){ 'urn:cap1?version=1.0' }
+
+      it "returns same capability with common queries" do
+        capability.queries = {'version' => ['1.0']}
+        capability.keyword_proc { |id| id.split('?').first }
+        capability.version_proc { |id| URI.decode_www_form((id.split('?') + [''])[1]).inject({}){|a,(k,v)| a.merge({k => v})}['version'][0] }
+        expect(capability.negotiate other_id).to eq capability
+      end
+    end
+  end
 end
