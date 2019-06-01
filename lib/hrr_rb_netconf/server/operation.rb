@@ -8,12 +8,13 @@ require 'hrr_rb_netconf/server/filter'
 module HrrRbNetconf
   class Server
     class Operation
-      def initialize server, session, capabilities, datastore_session
+      def initialize server, session, capabilities, datastore_session, strict_capabilities
         @logger = Logger.new self.class.name
         @server = server
         @session = session
         @capabilities = capabilities
         @datastore_session = datastore_session
+        @strict_capabilities = strict_capabilities
         @models = Hash.new
         @oper_procs = Hash.new
 
@@ -25,11 +26,14 @@ module HrrRbNetconf
           c.oper_procs.each{ |k, v|
             @oper_procs[k] = v
           }
-          c.models.each{ |m|
-            oper_name, path, stmt, options = m
-            @models[oper_name] ||= Model.new oper_name
-            @models[oper_name].add c, path, stmt, options
-          }
+          p @strict_capabilities
+          if @strict_capabilities
+            c.models.each{ |m|
+              oper_name, path, stmt, options = m
+              @models[oper_name] ||= Model.new oper_name
+              @models[oper_name].add c, path, stmt, options
+            }
+          end
         }
       end
 
@@ -60,8 +64,10 @@ module HrrRbNetconf
           raise Error['operation-not-supported'].new('protocol', 'error')
         end
 
-        unless validate input_e
-          raise Error['operation-not-supported'].new('application', 'error')
+        if @strict_capabilities
+          unless validate input_e
+            raise Error['operation-not-supported'].new('application', 'error')
+          end
         end
 
         raw_output = @oper_procs[input_e.name].call(@session, @datastore_session, input_e)
