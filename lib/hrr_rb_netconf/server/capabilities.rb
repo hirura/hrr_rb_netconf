@@ -17,8 +17,15 @@ module HrrRbNetconf
       end
 
       def negotiate remote_capabilities
-        capabilities_h = (@caps.keys & remote_capabilities).inject({}){ |a, b| a.merge({b => @caps[b]}) }
-        Capabilities.new @features, capabilities_h
+        filtered_by_features = @caps.select{ |k, v| if @features.nil? then true else (v.if_features - @features).empty? end }
+        capabilities_h = filtered_by_features.values.group_by{ |c| c.keyword }.map{ |k, cs|
+          cs.map{ |c|
+            remote_capabilities.lazy.map{ |rc| c.negotiate rc }.select{ |nc| nc }.first
+          }.compact.max
+        }.compact.inject({}){ |a, c|
+          a.merge({c.uri => c})
+        }
+        Capabilities.new @features.dup, capabilities_h
       end
 
       def register_capability name, &blk
@@ -36,18 +43,20 @@ module HrrRbNetconf
       end
 
       def list_supported
-        @caps.select{ |k, v| if @features.nil? then true else (v.if_features - @features).empty? end }.keys
+        @caps.select{ |k, v| if @features.nil? then true else (v.if_features - @features).empty? end }.map{ |k, v| v.id }
       end
 
       def list_loadable
         filtered_by_features = @caps.select{ |k, v| if @features.nil? then true else (v.if_features - @features).empty? end }
         @filtered_by_dependencies = filtered_by_features.select{ |k, v| v.dependencies.all?{ |d| filtered_by_features.has_key? d } }
-        tsort
+        tsort.map{ |k| @filtered_by_dependencies[k].id }
       end
 
       def each_loadable
-        list_loadable.each do |c|
-          yield @caps[c]
+        filtered_by_features = @caps.select{ |k, v| if @features.nil? then true else (v.if_features - @features).empty? end }
+        @filtered_by_dependencies = filtered_by_features.select{ |k, v| v.dependencies.all?{ |d| filtered_by_features.has_key? d } }
+        tsort.each do|k|
+          yield @filtered_by_dependencies[k]
         end
       end
 

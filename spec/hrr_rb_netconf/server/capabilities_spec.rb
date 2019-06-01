@@ -88,4 +88,256 @@ RSpec.describe HrrRbNetconf::Server::Capabilities do
       end
     end
   end
+
+  describe "#negotiate" do
+    let(:capabilities){ described_class.new features }
+
+    describe "when features is nil" do
+      let(:features){ nil }
+
+      describe "when capabilities which are pre-configured" do
+        before :example do
+          Class.new(HrrRbNetconf::Server::Capability){ |klass|
+            klass::ID = 'urn:cap:with:queries:1.0'
+            klass::QUERIES = {'scheme' => ['http', 'https']}
+          }
+        end
+
+        after :example do
+          HrrRbNetconf::Server::Capability.instance_variable_get('@subclass_list').delete('url:cap:with:queries:1.0')
+        end
+
+        describe "with exact matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,https',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:ietf:params:netconf:capability:startup:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http', 'https']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http%2Chttps'
+          end
+        end
+
+        describe "with partial matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:ietf:params:netconf:capability:startup:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http'
+          end
+        end
+
+        describe "with no matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:ietf:params:netconf:capability:startup:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0'
+          end
+        end
+      end
+
+      describe "when capabilities which are dynamically configured" do
+        before :example do
+          capabilities.register_capability('urn:cap:with:queries:1.0'){ |cap|
+            cap.queries = {'scheme' => ['http', 'https']}
+          }
+        end
+
+        describe "with exact matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,https',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:ietf:params:netconf:capability:startup:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http', 'https']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http%2Chttps'
+          end
+        end
+
+        describe "with partial matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:ietf:params:netconf:capability:startup:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http'
+          end
+        end
+
+        describe "with no matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:ietf:params:netconf:capability:startup:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0'
+          end
+        end
+      end
+    end
+
+    describe "when empty features" do
+      let(:features){ [] }
+
+      describe "when capabilities which are pre-configured" do
+        before :example do
+          Class.new(HrrRbNetconf::Server::Capability){ |klass|
+            klass::ID = 'urn:cap:with:queries:1.0'
+            klass::QUERIES = {'scheme' => ['http', 'https']}
+          }
+        end
+
+        after :example do
+          HrrRbNetconf::Server::Capability.instance_variable_get('@subclass_list').delete('url:cap:with:queries:1.0')
+        end
+
+        describe "with exact matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,https',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http', 'https']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http%2Chttps'
+          end
+        end
+
+        describe "with partial matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http'
+          end
+        end
+
+        describe "with no matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0'
+          end
+        end
+      end
+
+      describe "when capabilities which are dynamically configured" do
+        before :example do
+          capabilities.register_capability('urn:cap:with:queries:1.0'){ |cap|
+            cap.queries = {'scheme' => ['http', 'https']}
+          }
+        end
+
+        describe "with exact matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,https',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http', 'https']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http%2Chttps'
+          end
+        end
+
+        describe "with partial matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=http,ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({'scheme' => ['http']})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0?scheme=http'
+          end
+        end
+
+        describe "with no matched remote capabilities" do
+          let(:remote_capabilities){
+            [
+              'urn:ietf:params:netconf:capability:startup:1.0',
+              'urn:cap:with:queries:1.0?scheme=ftp',
+            ]
+          }
+
+          it "returns negotiated capabilities" do
+            negotiated_capabilities = capabilities.negotiate remote_capabilities
+            expect(negotiated_capabilities.instance_variable_get('@caps').has_key? 'urn:cap:with:queries:1.0').to be true
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].queries).to eq ({})
+            expect(negotiated_capabilities.instance_variable_get('@caps')['urn:cap:with:queries:1.0'].id).to eq 'urn:cap:with:queries:1.0'
+          end
+        end
+      end
+    end
+  end
 end
