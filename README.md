@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/hirura/hrr_rb_netconf.svg?branch=master)](https://travis-ci.org/hirura/hrr_rb_netconf)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bd9f4c3f7307082f74b0/maintainability)](https://codeclimate.com/github/hirura/hrr_rb_netconf/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/bd9f4c3f7307082f74b0/test_coverage)](https://codeclimate.com/github/hirura/hrr_rb_netconf/test_coverage)
+[![Gem Version](https://badge.fury.io/rb/hrr_rb_netconf.svg)](https://badge.fury.io/rb/hrr_rb_netconf)
 
 hrr_rb_netconf is a pure Ruby NETCONF server implementation.
 
@@ -17,11 +18,27 @@ hrr_rb_netconf is a pure Ruby NETCONF server implementation.
 
 ## Installation
 
-TODO
+Add this line to your application's Gemfile:
+
+```ruby
+gem 'hrr_rb_netconf'
+```
+
+And then execute:
+
+```
+$ bundle
+```
+
+Or install it yourself as:
+
+```
+$ gem install hrr_rb_netconf
+```
 
 ## Usage
 
-### Writing standard SSH server
+### Writing standard NETCONF server
 
 #### Requiring `hrr_rb_netconf` library
 
