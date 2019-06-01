@@ -49,7 +49,7 @@ RSpec.describe HrrRbNetconf::Server::Capabilities do
       let(:features){ [] }
 
       it "returns capabilities that has no if-features list" do
-        expect( capabilities.list_supported ).to eq HrrRbNetconf::Server::Capability.list.select{ |c| HrrRbNetconf::Server::Capability[c].new.if_features.empty? }
+        expect( capabilities.list_supported ).to eq HrrRbNetconf::Server::Capability.list.select{ |c| HrrRbNetconf::Server::Capability[c].new.if_features.empty? }.map{ |c| HrrRbNetconf::Server::Capability[c].new.id }
       end
     end
 
@@ -60,7 +60,7 @@ RSpec.describe HrrRbNetconf::Server::Capabilities do
         capabilities.register_capability('cap1'){ |cap| cap.if_features = ['test1'] }
         capabilities.register_capability('cap2'){ |cap| cap.if_features = ['test2'] }
         capabilities.register_capability('cap3'){ |cap| cap.if_features = ['test3'] }
-        expect( capabilities.list_supported ).to eq (HrrRbNetconf::Server::Capability.list.select{ |c| (HrrRbNetconf::Server::Capability[c].new.if_features - features).empty? } + ['cap1', 'cap2'])
+        expect( capabilities.list_supported ).to eq (HrrRbNetconf::Server::Capability.list.select{ |c| (HrrRbNetconf::Server::Capability[c].new.if_features - features).empty? }.map{ |c| HrrRbNetconf::Server::Capability[c].new.id } + ['cap1', 'cap2'])
       end
     end
   end
