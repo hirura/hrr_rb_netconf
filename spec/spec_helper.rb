@@ -1,4 +1,12 @@
 require "bundler/setup"
+
+if ENV['CI']
+  require 'simplecov'
+  SimpleCov.start do
+     #add_filter '/spec/'
+  end
+end
+
 require "hrr_rb_netconf"
 
 RSpec.configure do |config|
