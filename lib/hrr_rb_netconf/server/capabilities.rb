@@ -25,7 +25,8 @@ module HrrRbNetconf
         }.compact.inject({}){ |a, c|
           a.merge({c.uri => c})
         }
-        Capabilities.new @features.dup, capabilities_h
+        features = if @features.nil? then nil else @features.dup end
+        Capabilities.new features, capabilities_h
       end
 
       def register_capability name, &blk
