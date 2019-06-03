@@ -3,6 +3,7 @@
 
 require "hrr_rb_netconf/version"
 require "hrr_rb_netconf/logger"
+require "hrr_rb_netconf/relaxed_xml"
 require "hrr_rb_netconf/server"
 
 module HrrRbNetconf
