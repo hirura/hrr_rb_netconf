@@ -105,5 +105,48 @@ module HrrRbNetconf
         end
       end
     end
+
+    def send_notification arg1, arg2=nil
+      if arg2
+        event_time_e = begin
+                         case arg1
+                         when REXML::Element
+                           event_time = DateTime.rfc3339(arg1.txt).rfc3339
+                         else
+                           event_time = DateTime.rfc3339(arg1).rfc3339
+                         end
+                         e = REXML::Element.new('eventTime')
+                         e.text = event_time
+                         e
+                       end
+        event_e = case arg2
+                  when REXML::Document
+                    arg2.root.deep_clone
+                  when REXML::Element
+                    arg2.deep_clone
+                  else
+                    REXML::Document.new(arg2, {:ignore_whitespace_nodes => :all}).root
+                  end
+        event_xml = RelaxedXML.new
+        event_xml.add event_time_e
+        event_xml.add event_e
+      else
+        event_xml = case arg1
+                    when RelaxedXML
+                      arg1
+                    else
+                      RelaxedXML.new(arg2, {:ignore_whitespace_nodes => :all})
+                    end
+        event_time = event_xml.elements['eventTime'].text
+        event_xml.elements['eventTime'].text = DateTime.rfc3339(event_time).rfc3339
+      end
+      @logger.info { "Send notification" }
+      @logger.debug { "Event time: #{event_xml.elements['eventTime'].text}, Event: #{event_xml.elements.to_a}" }
+      targets = @sessions.select{ |k, v| v.notification_enabled? }
+      @logger.debug { "Notification enabled on #{targets.keys}" }
+      targets.each{ |session_id, session|
+        session.send_notification event_xml
+      }
+    end
   end
 end
