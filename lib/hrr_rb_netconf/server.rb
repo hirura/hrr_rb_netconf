@@ -2,6 +2,7 @@
 # vim: et ts=2 sw=2
 
 require 'thread'
+require 'hrr_rb_relaxed_xml'
 require 'hrr_rb_netconf/logger'
 require 'hrr_rb_netconf/server/error'
 require 'hrr_rb_netconf/server/errors'
@@ -127,15 +128,15 @@ module HrrRbNetconf
                   else
                     REXML::Document.new(arg2, {:ignore_whitespace_nodes => :all}).root
                   end
-        event_xml = RelaxedXML.new
+        event_xml = HrrRbRelaxedXML::Document.new
         event_xml.add event_time_e
         event_xml.add event_e
       else
         event_xml = case arg1
-                    when RelaxedXML
+                    when HrrRbRelaxedXML::Document
                       arg1
                     else
-                      RelaxedXML.new(arg2, {:ignore_whitespace_nodes => :all})
+                      HrrRbRelaxedXML::Document.new(arg2, {:ignore_whitespace_nodes => :all})
                     end
         event_time = event_xml.elements['eventTime'].text
         event_xml.elements['eventTime'].text = DateTime.rfc3339(event_time).rfc3339
