@@ -45,7 +45,7 @@ module HrrRbNetconf
     end
 
     def start_session io
-      @logger.info { "Starting session" }
+      @logger.info { "Start session" }
       session_id = SESSION_ID_UNALLOCATED
       begin
         @mutex.synchronize do
@@ -53,11 +53,7 @@ module HrrRbNetconf
           @logger.info { "Session ID: #{session_id}" }
           @sessions[session_id] = Session.new self, @capabilities, @datastore, session_id, io, @strict_capabilities
         end
-        t = Thread.new {
-          @sessions[session_id].start
-        }
-        @logger.info { "Session started: Session ID: #{session_id}" }
-        t.join
+        @sessions[session_id].start
       rescue => e
         @logger.error { "Session terminated: Session ID: #{session_id}" }
         raise
