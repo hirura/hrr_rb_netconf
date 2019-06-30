@@ -207,6 +207,13 @@ The following capabilities are currently supported.
 
   Required feature: xpath
 
+- urn:ietf:params:netconf:capability:notification:1.0
+
+  Required feature: notification
+
+  Required datastore operations:
+  - create-subscription
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/hirura/hrr_rb_netconf. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
