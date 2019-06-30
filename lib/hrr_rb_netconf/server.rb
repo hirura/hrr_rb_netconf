@@ -1,6 +1,7 @@
 # coding: utf-8
 # vim: et ts=2 sw=2
 
+require 'date'
 require 'thread'
 require 'hrr_rb_relaxed_xml'
 require 'hrr_rb_netconf/logger'
@@ -9,6 +10,8 @@ require 'hrr_rb_netconf/server/errors'
 require 'hrr_rb_netconf/server/datastore'
 require 'hrr_rb_netconf/server/capabilities'
 require 'hrr_rb_netconf/server/session'
+require 'hrr_rb_netconf/server/notification_event'
+require 'hrr_rb_netconf/server/notification_streams'
 
 module HrrRbNetconf
   class Server
@@ -27,6 +30,7 @@ module HrrRbNetconf
       @locks = Hash.new
       @lock_mutex = Mutex.new
       @last_session_id = SESSION_ID_MIN - 1
+      @notification_streams = NotificationStreams.new
     end
 
     def allocate_session_id
@@ -103,47 +107,31 @@ module HrrRbNetconf
       end
     end
 
+    def notification_stream stream, replay_support: false, &blk
+      @notification_streams.update stream, blk, replay_support
+    end
+
+    def has_notification_stream? stream
+      @notification_streams.has_stream? stream
+    end
+
+    def notification_stream_support_replay? stream
+      @notification_streams.stream_support_replay? stream
+    end
+
+    def event_match_stream? event_xml, stream
+      @notification_streams.event_match_stream? event_xml, stream
+    end
+
     def send_notification arg1, arg2=nil
-      if arg2
-        event_time_e = begin
-                         case arg1
-                         when REXML::Element
-                           event_time = DateTime.rfc3339(arg1.txt).rfc3339
-                         else
-                           event_time = DateTime.rfc3339(arg1).rfc3339
-                         end
-                         e = REXML::Element.new('eventTime')
-                         e.text = event_time
-                         e
-                       end
-        event_e = case arg2
-                  when REXML::Document
-                    arg2.root.deep_clone
-                  when REXML::Element
-                    arg2.deep_clone
-                  else
-                    REXML::Document.new(arg2, {:ignore_whitespace_nodes => :all}).root
-                  end
-        event_xml = HrrRbRelaxedXML::Document.new
-        event_xml.add event_time_e
-        event_xml.add event_e
-      else
-        event_xml = case arg1
-                    when HrrRbRelaxedXML::Document
-                      arg1
-                    else
-                      HrrRbRelaxedXML::Document.new(arg2, {:ignore_whitespace_nodes => :all})
-                    end
-        event_time = event_xml.elements['eventTime'].text
-        event_xml.elements['eventTime'].text = DateTime.rfc3339(event_time).rfc3339
-      end
+      event_xml = NotificationEvent.new(arg1, arg2).to_xml
+      matched_streams = @notification_streams.matched_streams event_xml
       @logger.info { "Send notification" }
       @logger.debug { "Event time: #{event_xml.elements['eventTime'].text}, Event: #{event_xml.elements.to_a}" }
-      targets = @sessions.select{ |k, v| v.notification_enabled? }
-      @logger.debug { "Notification enabled on #{targets.keys}" }
-      targets.each{ |session_id, session|
-        session.send_notification event_xml
+      @sessions.each{ |session_id, session|
+        session.filter_and_send_notification matched_streams, event_xml
       }
+      @logger.info { "Send notification done" }
     end
   end
 end
