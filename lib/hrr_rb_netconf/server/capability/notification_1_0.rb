@@ -10,7 +10,7 @@ module HrrRbNetconf
       class Notification_1_0 < Capability
         ID = 'urn:ietf:params:netconf:capability:notification:1.0'
         DEPENDENCIES = []
-        IF_FEATURES  = []
+        IF_FEATURES  = ['notification']
 
         oper_proc('create-subscription'){ |session, datastore, input_e|
           logger = Logger.new HrrRbNetconf::Server::Capability::Notification_1_0
