@@ -21,7 +21,7 @@ RSpec.describe HrrRbNetconf::Server::Capability::Base_1_0 do
       describe "when message is well-formed" do
         it "sends message with ']]>]]>' suffix" do
           sender.send_message "<a><b /></a>"
-          expect(io_w.string).to eq "<a>\n  <b/>\n</a>\n]]>]]>\n"
+          expect(io_w.string).to eq "<a>\n  <b/>\n</a>\n]]>]]>"
         end
       end
 
@@ -35,14 +35,14 @@ RSpec.describe HrrRbNetconf::Server::Capability::Base_1_0 do
     describe "when message is a kind of REXML::Document" do
       it "sends message with ']]>]]>' suffix" do
         sender.send_message REXML::Document.new("<a><b /></a>", {:ignore_whitespace_nodes => :all})
-        expect(io_w.string).to eq "<a>\n  <b/>\n</a>\n]]>]]>\n"
+        expect(io_w.string).to eq "<a>\n  <b/>\n</a>\n]]>]]>"
       end
     end
 
     describe "when message is a kind of REXML::Element" do
       it "sends message with ']]>]]>' suffix" do
         sender.send_message REXML::Document.new("<a><b /></a>", {:ignore_whitespace_nodes => :all}).root
-        expect(io_w.string).to eq "<a>\n  <b/>\n</a>\n]]>]]>\n"
+        expect(io_w.string).to eq "<a>\n  <b/>\n</a>\n]]>]]>"
       end
     end
 

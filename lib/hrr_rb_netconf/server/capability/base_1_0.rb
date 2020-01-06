@@ -121,7 +121,7 @@ module HrrRbNetconf
             end
             @logger.debug { "Sending message: #{buf.inspect}" }
             begin
-              @io_w.write "#{buf}\n]]>]]>\n"
+              @io_w.write "#{buf}\n]]>]]>"
             rescue => e
               @logger.info { "Sender IO closed: #{e.class}: #{e.message}" }
               raise IOError, "Sender IO closed: #{e.class}: #{e.message}"

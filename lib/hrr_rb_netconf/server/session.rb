@@ -90,7 +90,7 @@ module HrrRbNetconf
         formatter.compact = true
         formatter.write(xml_doc, buf)
         @logger.debug { "Sending hello message: #{buf.inspect}" }
-        @io_w.write "#{buf}\n]]>]]>\n"
+        @io_w.write "#{buf}\n]]>]]>"
       end
 
       def receive_hello
