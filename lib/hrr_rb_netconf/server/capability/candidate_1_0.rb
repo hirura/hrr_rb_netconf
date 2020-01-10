@@ -9,25 +9,27 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = ['candidate']
 
-        oper_proc('commit'){ |session, datastore, input_e|
-          datastore.run 'commit', input_e
-          '<ok />'
-        }
+        def define_capability
+          oper_proc('commit'){ |session, datastore, input_e|
+            datastore.run 'commit', input_e
+            '<ok />'
+          }
 
-        oper_proc('discard-changes'){ |session, datastore, input_e|
-          datastore.run 'discard-changes', input_e
-          '<ok />'
-        }
+          oper_proc('discard-changes'){ |session, datastore, input_e|
+            datastore.run 'discard-changes', input_e
+            '<ok />'
+          }
 
-        model 'get-config',      ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
-        model 'edit-config',     ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
-        model 'copy-config',     ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
-        model 'copy-config',     ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
-        model 'validate',        ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
-        model 'lock',            ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
-        model 'unlock',          ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
-        model 'commit',          []
-        model 'discard-changes', []
+          model 'get-config',      ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
+          model 'edit-config',     ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+          model 'copy-config',     ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
+          model 'copy-config',     ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+          model 'validate',        ['source', 'config-source', 'candidate'], 'leaf', 'type' => 'empty'
+          model 'lock',            ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+          model 'unlock',          ['target', 'config-target', 'candidate'], 'leaf', 'type' => 'empty'
+          model 'commit',          []
+          model 'discard-changes', []
+        end
       end
     end
   end

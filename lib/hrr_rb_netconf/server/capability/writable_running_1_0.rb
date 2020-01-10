@@ -9,8 +9,10 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = ['writable-running']
 
-        model 'edit-config', ['target', 'config-target', 'running'], 'leaf', 'type' => 'empty'
-        model 'copy-config', ['target', 'config-target', 'running'], 'leaf', 'type' => 'empty'
+        def define_capability
+          model 'edit-config', ['target', 'config-target', 'running'], 'leaf', 'type' => 'empty'
+          model 'copy-config', ['target', 'config-target', 'running'], 'leaf', 'type' => 'empty'
+        end
       end
     end
   end

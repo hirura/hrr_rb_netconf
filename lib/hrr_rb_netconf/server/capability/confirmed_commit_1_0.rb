@@ -9,8 +9,10 @@ module HrrRbNetconf
         DEPENDENCIES = ['urn:ietf:params:netconf:capability:candidate:1.0']
         IF_FEATURES  = ['candidate', 'confirmed-commit']
 
-        model 'commit', ['confirmed'],       'leaf', 'type' => 'empty'
-        model 'commit', ['confirm-timeout'], 'leaf', 'type' => 'integer', 'range' => [1, 2**32-1], 'default' => '600'
+        def define_capability
+          model 'commit', ['confirmed'],       'leaf', 'type' => 'empty'
+          model 'commit', ['confirm-timeout'], 'leaf', 'type' => 'integer', 'range' => [1, 2**32-1], 'default' => '600'
+        end
       end
     end
   end

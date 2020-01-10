@@ -12,86 +12,88 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = []
 
-        oper_proc('get'){ |session, datastore, input_e|
-          datastore.run 'get', input_e
-        }
+        def define_capability
+          oper_proc('get'){ |session, datastore, input_e|
+            datastore.run 'get', input_e
+          }
 
-        oper_proc('get-config'){ |session, datastore, input_e|
-          datastore.run 'get-config', input_e
-        }
+          oper_proc('get-config'){ |session, datastore, input_e|
+            datastore.run 'get-config', input_e
+          }
 
-        oper_proc('edit-config'){ |session, datastore, input_e|
-          datastore.run 'edit-config', input_e
-          '<ok />'
-        }
-
-        oper_proc('copy-config'){ |session, datastore, input_e|
-          datastore.run 'copy-config', input_e
-          '<ok />'
-        }
-
-        oper_proc('delete-config'){ |session, datastore, input_e|
-          datastore.run 'delete-config', input_e
-          '<ok />'
-        }
-
-        oper_proc('lock'){ |session, datastore, input_e|
-          target = input_e.elements['target'].elements[1].name
-          session.lock target
-          begin
-            datastore.run 'lock', input_e
+          oper_proc('edit-config'){ |session, datastore, input_e|
+            datastore.run 'edit-config', input_e
             '<ok />'
-          rescue
+          }
+
+          oper_proc('copy-config'){ |session, datastore, input_e|
+            datastore.run 'copy-config', input_e
+            '<ok />'
+          }
+
+          oper_proc('delete-config'){ |session, datastore, input_e|
+            datastore.run 'delete-config', input_e
+            '<ok />'
+          }
+
+          oper_proc('lock'){ |session, datastore, input_e|
+            target = input_e.elements['target'].elements[1].name
+            session.lock target
+            begin
+              datastore.run 'lock', input_e
+              '<ok />'
+            rescue
+              session.unlock target
+              raise
+            end
+          }
+
+          oper_proc('unlock'){ |session, datastore, input_e|
+            datastore.run 'unlock', input_e
+            target = input_e.elements['target'].elements[1].name
             session.unlock target
-            raise
-          end
-        }
+            '<ok />'
+          }
 
-        oper_proc('unlock'){ |session, datastore, input_e|
-          datastore.run 'unlock', input_e
-          target = input_e.elements['target'].elements[1].name
-          session.unlock target
-          '<ok />'
-        }
+          oper_proc('close-session'){ |session, datastore, input_e|
+            datastore.run 'close-session', input_e
+            session.close
+            '<ok />'
+          }
 
-        oper_proc('close-session'){ |session, datastore, input_e|
-          datastore.run 'close-session', input_e
-          session.close
-          '<ok />'
-        }
+          oper_proc('kill-session'){ |session, datastore, input_e|
+            session.close_other Integer(input_e.elements['session-id'].text)
+            '<ok />'
+          }
 
-        oper_proc('kill-session'){ |session, datastore, input_e|
-          session.close_other Integer(input_e.elements['session-id'].text)
-          '<ok />'
-        }
-
-        model 'get',           ['filter'],                             'leaf',     'type' => 'anyxml'
-        model 'get-config',    ['source'],                             'container'
-        model 'get-config',    ['source', 'config-source'],            'choice',   'mandatory' => true
-        model 'get-config',    ['source', 'config-source', 'running'], 'leaf',     'type' => 'empty'
-        model 'get-config',    ['filter'],                             'leaf',     'type' => 'anyxml'
-        model 'edit-config',   ['target'],                             'container'
-        model 'edit-config',   ['target', 'config-target'],            'choice',   'mandatory' => true
-        model 'edit-config',   ['default-operation'],                  'leaf',     'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'
-        model 'edit-config',   ['error-option'],                       'leaf',     'type' => 'enumeration', 'enum' => ['stop-on-error', 'continue-on-error', 'rollback-on-error'], 'default' => 'stop-on-error'
-        model 'edit-config',   ['edit-content'],                       'choice',   'mandatory' => true
-        model 'edit-config',   ['edit-content', 'config'],             'leaf',     'type' => 'anyxml'
-        model 'copy-config',   ['target'],                             'container'
-        model 'copy-config',   ['target', 'config-target'],            'choice',   'mandatory' => true
-        model 'copy-config',   ['source'],                             'container'
-        model 'copy-config',   ['source', 'config-source'],            'choice',   'mandatory' => true
-        model 'copy-config',   ['source', 'config-source', 'running'], 'leaf',     'type' => 'empty'
-        model 'copy-config',   ['source', 'config-source', 'config'],  'leaf',     'type' => 'anyxml'
-        model 'delete-config', ['target'],                             'container'
-        model 'delete-config', ['target', 'config-target'],            'choice',   'mandatory' => true
-        model 'lock',          ['target'],                             'container'
-        model 'lock',          ['target', 'config-target'],            'choice',   'mandatory' => true
-        model 'lock',          ['target', 'config-target', 'running'], 'leaf',     'type' => 'empty'
-        model 'unlock',        ['target'],                             'container'
-        model 'unlock',        ['target', 'config-target'],            'choice',   'mandatory' => true
-        model 'unlock',        ['target', 'config-target', 'running'], 'leaf',     'type' => 'empty'
-        model 'close-session', []
-        model 'kill-session',  ['session-id'],                         'leaf',     'type' => 'integer', 'range' => [1, 2**32-1]
+          model 'get',           ['filter'],                             'leaf',     'type' => 'anyxml'
+          model 'get-config',    ['source'],                             'container'
+          model 'get-config',    ['source', 'config-source'],            'choice',   'mandatory' => true
+          model 'get-config',    ['source', 'config-source', 'running'], 'leaf',     'type' => 'empty'
+          model 'get-config',    ['filter'],                             'leaf',     'type' => 'anyxml'
+          model 'edit-config',   ['target'],                             'container'
+          model 'edit-config',   ['target', 'config-target'],            'choice',   'mandatory' => true
+          model 'edit-config',   ['default-operation'],                  'leaf',     'type' => 'enumeration', 'enum' => ['merge', 'replace', 'none'], 'default' => 'merge'
+          model 'edit-config',   ['error-option'],                       'leaf',     'type' => 'enumeration', 'enum' => ['stop-on-error', 'continue-on-error', 'rollback-on-error'], 'default' => 'stop-on-error'
+          model 'edit-config',   ['edit-content'],                       'choice',   'mandatory' => true
+          model 'edit-config',   ['edit-content', 'config'],             'leaf',     'type' => 'anyxml'
+          model 'copy-config',   ['target'],                             'container'
+          model 'copy-config',   ['target', 'config-target'],            'choice',   'mandatory' => true
+          model 'copy-config',   ['source'],                             'container'
+          model 'copy-config',   ['source', 'config-source'],            'choice',   'mandatory' => true
+          model 'copy-config',   ['source', 'config-source', 'running'], 'leaf',     'type' => 'empty'
+          model 'copy-config',   ['source', 'config-source', 'config'],  'leaf',     'type' => 'anyxml'
+          model 'delete-config', ['target'],                             'container'
+          model 'delete-config', ['target', 'config-target'],            'choice',   'mandatory' => true
+          model 'lock',          ['target'],                             'container'
+          model 'lock',          ['target', 'config-target'],            'choice',   'mandatory' => true
+          model 'lock',          ['target', 'config-target', 'running'], 'leaf',     'type' => 'empty'
+          model 'unlock',        ['target'],                             'container'
+          model 'unlock',        ['target', 'config-target'],            'choice',   'mandatory' => true
+          model 'unlock',        ['target', 'config-target', 'running'], 'leaf',     'type' => 'empty'
+          model 'close-session', []
+          model 'kill-session',  ['session-id'],                         'leaf',     'type' => 'integer', 'range' => [1, 2**32-1]
+        end
 
         class Sender
           MAX_CHUNK_SIZE = 2**32 - 1

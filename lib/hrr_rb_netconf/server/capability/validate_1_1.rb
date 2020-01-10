@@ -9,16 +9,18 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = ['validate']
 
-        oper_proc('validate'){ |session, datastore, input_e|
-          datastore.run 'validate', input_e
-          '<ok />'
-        }
+        def define_capability
+          oper_proc('validate'){ |session, datastore, input_e|
+            datastore.run 'validate', input_e
+            '<ok />'
+          }
 
-        model 'edit-config', ['test-option'],                        'leaf',     'type' => 'enumeration', 'enum' => ['test-then-set', 'set', 'test-only'], 'default' => 'test-then-set'
-        model 'validate',    ['source'],                             'container'
-        model 'validate',    ['source', 'config-source'],            'choice',   'mandatory' => true
-        model 'validate',    ['source', 'config-source', 'running'], 'leaf',     'type' => 'empty'
-        model 'validate',    ['source', 'config-source', 'config'],  'leaf',     'type' => 'anyxml'
+          model 'edit-config', ['test-option'],                        'leaf',     'type' => 'enumeration', 'enum' => ['test-then-set', 'set', 'test-only'], 'default' => 'test-then-set'
+          model 'validate',    ['source'],                             'container'
+          model 'validate',    ['source', 'config-source'],            'choice',   'mandatory' => true
+          model 'validate',    ['source', 'config-source', 'running'], 'leaf',     'type' => 'empty'
+          model 'validate',    ['source', 'config-source', 'config'],  'leaf',     'type' => 'anyxml'
+        end
       end
     end
   end

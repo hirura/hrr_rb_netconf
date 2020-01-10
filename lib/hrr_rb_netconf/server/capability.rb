@@ -29,28 +29,6 @@ module HrrRbNetconf
         private :__subclass_list__
       end
 
-      class << self
-        def oper_procs
-          @oper_procs || {}
-        end
-
-        def oper_proc oper_name, &blk
-          @oper_procs ||= Hash.new
-          @oper_procs[oper_name] = blk
-        end
-
-        def models
-          @models || []
-        end
-
-        def model oper_name, path, stmt=nil, attrs={}
-          @models ||= Array.new
-          @models.push [oper_name, path, stmt, attrs]
-        end
-
-        private :oper_proc, :model
-      end
-
       attr_accessor :if_features, :dependencies, :queries
 
       def initialize id=nil
@@ -58,20 +36,24 @@ module HrrRbNetconf
         @queries      = (self.class::QUERIES rescue {})
         @if_features  = (self.class::IF_FEATURES rescue [])
         @dependencies = (self.class::DEPENDENCIES rescue [])
-        @oper_procs   = self.class.oper_procs.dup
-        @models       = (self.class.models rescue [])
         @uri_proc     = Proc.new { |id| id.split('?').first }
         @keyword_proc = Proc.new { |id| id.split('?').first.match(/^((?:.+(?:\/|:))+.+)(?:\/|:)(.+)$/)[1] }
         @version_proc = Proc.new { |id| id.split('?').first.match(/^((?:.+(?:\/|:))+.+)(?:\/|:)(.+)$/)[2] }
         @decode_queries_proc = Proc.new { |qs_s| URI.decode_www_form(qs_s).inject({}){|a,(k,v)| a.merge({k=>(v.split(','))})} }
         @encode_queries_proc = Proc.new { |qs_h| URI.encode_www_form(qs_h.map{|k,v| [k, v.join(',')]}) }
+        define_capability
+      end
+
+      def define_capability
+        # to be overridden
       end
 
       def oper_procs
-        @oper_procs
+        @oper_procs || {}
       end
 
       def oper_proc oper_name, &blk
+        @oper_procs ||= Hash.new
         if blk
           @oper_procs[oper_name] = blk
         end
@@ -79,10 +61,11 @@ module HrrRbNetconf
       end
 
       def models
-        @models
+        @models || []
       end
 
       def model oper_name, path, stmt=nil, attrs={}
+        @models ||= Array.new
         @models.push [oper_name, path, stmt, attrs]
       end
 
@@ -188,6 +171,8 @@ module HrrRbNetconf
           version <=> other.version
         end
       end
+
+      private :oper_proc, :model
     end
   end
 end

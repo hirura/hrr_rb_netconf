@@ -9,7 +9,9 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = ['rollback-on-error']
 
-        model 'edit-config', ['error-option'], 'leaf', 'type' => 'enumeration', 'enum' => ['stop-on-error', 'continue-on-error', 'rollback-on-error'], 'default' => 'stop-on-error'
+        def define_capability
+          model 'edit-config', ['error-option'], 'leaf', 'type' => 'enumeration', 'enum' => ['stop-on-error', 'continue-on-error', 'rollback-on-error'], 'default' => 'stop-on-error'
+        end
       end
     end
   end

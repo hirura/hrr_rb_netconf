@@ -9,13 +9,15 @@ module HrrRbNetconf
         DEPENDENCIES = []
         IF_FEATURES  = ['startup']
 
-        model 'get-config',    ['source', 'config-source', 'startup'], 'leaf', 'type' => 'empty'
-        model 'copy-config',   ['source', 'config-source', 'startup'], 'leaf', 'type' => 'empty'
-        model 'copy-config',   ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
-        model 'lock',          ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
-        model 'unlock',        ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
-        model 'validate',      ['source', 'config-source', 'startup'], 'leaf', 'type' => 'empty'
-        model 'delete-config', ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
+        def define_capability
+          model 'get-config',    ['source', 'config-source', 'startup'], 'leaf', 'type' => 'empty'
+          model 'copy-config',   ['source', 'config-source', 'startup'], 'leaf', 'type' => 'empty'
+          model 'copy-config',   ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
+          model 'lock',          ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
+          model 'unlock',        ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
+          model 'validate',      ['source', 'config-source', 'startup'], 'leaf', 'type' => 'empty'
+          model 'delete-config', ['target', 'config-target', 'startup'], 'leaf', 'type' => 'empty'
+        end
       end
     end
   end
