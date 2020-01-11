@@ -2,7 +2,6 @@
 # vim: et ts=2 sw=2
 
 require 'rexml/document'
-require 'hrr_rb_netconf/logger'
 
 module HrrRbNetconf
   class Server
@@ -14,10 +13,9 @@ module HrrRbNetconf
 
         def define_capability
           oper_proc('create-subscription'){ |session, datastore, input_e|
-            logger = Logger.new HrrRbNetconf::Server::Capability::Notification_1_0
             stream_e = input_e.elements['stream']
             unless stream_e
-              logger.debug { "create-subscription doesn't have stream, so use NETCONF stream" }
+              log_debug { "create-subscription doesn't have stream, so use NETCONF stream" }
               stream_e = input_e.add_element('stream')
               stream_e.text = 'NETCONF'
             end
@@ -35,28 +33,28 @@ module HrrRbNetconf
                           DateTime.rfc3339(stop_time_e.text)
                         end
             if ! session.subscription_creatable? stream
-              logger.error { "Not available stream: #{stream}" }
-              raise Error['bad-element'].new('protocol', 'error', info: {'bad-element' => 'stream'})
+              log_error { "Not available stream: #{stream}" }
+              raise Error['bad-element'].new('protocol', 'error', info: {'bad-element' => 'stream'}, logger: logger)
             end
             if start_time.nil? && stop_time
-              logger.error { "startTime element doesn't exist, but stopTime does" }
-              raise Error['missing-element'].new('protocol', 'error', info: {'bad-element' => 'startTime'})
+              log_error { "startTime element doesn't exist, but stopTime does" }
+              raise Error['missing-element'].new('protocol', 'error', info: {'bad-element' => 'startTime'}, logger: logger)
             end
             if start_time && stop_time && (start_time > stop_time)
-              logger.error { "stopTime is earlier than startTime" }
-              raise Error['bad-element'].new('protocol', 'error', info: {'bad-element' => 'stopTime'})
+              log_error { "stopTime is earlier than startTime" }
+              raise Error['bad-element'].new('protocol', 'error', info: {'bad-element' => 'stopTime'}, logger: logger)
             end
             if start_time && (start_time > DateTime.now)
-              logger.error { "startTime is later than current time" }
-              raise Error['bad-element'].new('protocol', 'error', info: {'bad-element' => 'startTime'})
+              log_error { "startTime is later than current time" }
+              raise Error['bad-element'].new('protocol', 'error', info: {'bad-element' => 'startTime'}, logger: logger)
             end
             begin
               events = datastore.run('create-subscription', input_e)
             rescue Error
               raise
             rescue => e
-              logger.error { "Exception in datastore.run('create-subscription', input_e): #{e.message}" }
-              raise Error['operation-failed'].new('application', 'error')
+              log_error { "Exception in datastore.run('create-subscription', input_e): #{e.message}" }
+              raise Error['operation-failed'].new('application', 'error', logger: logger)
             end
             begin
               if start_time
@@ -65,8 +63,8 @@ module HrrRbNetconf
             rescue Error
               raise
             rescue => e
-              logger.error { "Exception in session.notification_replay: #{e.message}" }
-              raise Error['operation-failed'].new('protocol', 'error')
+              log_error { "Exception in session.notification_replay: #{e.message}" }
+              raise Error['operation-failed'].new('protocol', 'error', logger: logger)
             end
             session.create_subscription stream, start_time, stop_time
             '<ok />'

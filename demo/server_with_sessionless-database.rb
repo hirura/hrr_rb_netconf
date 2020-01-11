@@ -34,14 +34,12 @@ end
 
 
 logger = Logger.new STDOUT
-logger.level = Logger::INFO
 logger.level = Logger::DEBUG
-HrrRbNetconf::Logger.initialize logger
 
 
 db = SessionlessDatabase.new
 
-datastore = HrrRbNetconf::Server::Datastore.new(db)
+datastore = HrrRbNetconf::Server::Datastore.new(db, logger: logger)
 datastore.oper_proc('get'){ |db, input_e|
   db.get
 }
@@ -64,7 +62,7 @@ datastore.oper_proc('unlock'){ |db, input_e|
 
 
 server = TCPServer.new 10830
-netconf_server = HrrRbNetconf::Server.new datastore
+netconf_server = HrrRbNetconf::Server.new datastore, logger: logger
 loop do
   Thread.new(server.accept) do |io|
     begin

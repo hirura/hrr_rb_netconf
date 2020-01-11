@@ -2,13 +2,17 @@
 # vim: et ts=2 sw=2
 
 require 'rexml/document'
+require 'hrr_rb_netconf/loggable'
 require 'hrr_rb_netconf/server/error'
 require 'hrr_rb_netconf/server/model/node'
 
 module HrrRbNetconf
   class Server
     class Model
-      def initialize operation
+      include Loggable
+
+      def initialize operation, logger: nil
+        self.logger = logger
         @operation = operation
         @tree = Node.new nil, operation, 'root', {}
       end
@@ -48,7 +52,7 @@ module HrrRbNetconf
                   if c.options['validation'].nil?
                     true
                   else
-                    raise Error['operation-failed'].new('application', 'error', message: 'Not implemented')
+                    raise Error['operation-failed'].new('application', 'error', message: 'Not implemented', logger: logger)
                   end
                 else
                   validate_recursively c, xml_e.elements[c.name], parent_xml_e: xml_e
@@ -56,7 +60,7 @@ module HrrRbNetconf
               when 'choice'
                 validate_recursively c, xml_e, validated: validated
               else
-                raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, message: 'Not implemented')
+                raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, message: 'Not implemented', logger: logger)
               end
             }
           end && (xml_e.elements.to_a.map{|e| e.name} - validated).empty?
@@ -74,7 +78,7 @@ module HrrRbNetconf
             xml_e != nil && (REXML::Document.new(xml_e.text) rescue false)
           when 'inet:uri'
             xml_e != nil
-            raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{node.name}: #{node.stmt}"}, message: 'Not implemented: type inet:uri')
+            raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{node.name}: #{node.stmt}"}, message: 'Not implemented: type inet:uri', logger: logger)
           when 'integer'
             if xml_e == nil && node.options['default']
               parent_xml_e.add_element(node.name).text = node.options['default']
@@ -111,7 +115,7 @@ module HrrRbNetconf
             }
           end
         else
-          raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, message: 'Not implemented')
+          raise Error['unknown-element'].new('application', 'error', info: {'bad-element' => "#{c.name}: #{c.stmt}"}, message: 'Not implemented', logger: logger)
         end
       end
 

@@ -2,7 +2,6 @@
 # vim: et ts=2 sw=2
 
 require 'hrr_rb_relaxed_xml'
-require 'hrr_rb_netconf/logger'
 
 module HrrRbNetconf
   class Server

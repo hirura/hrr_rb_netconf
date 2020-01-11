@@ -14,9 +14,8 @@ end
 
 logger = Logger.new STDOUT
 logger.level = Logger::DEBUG
-HrrRbNetconf::Logger.initialize logger
 
-datastore = HrrRbNetconf::Server::Datastore.new('dummy'){ |db, session, oper_handler|
+datastore = HrrRbNetconf::Server::Datastore.new('dummy', logger: logger){ |db, session, oper_handler|
   begin
     logger.debug { "begin DB session" }
     oper_handler.start db
@@ -34,7 +33,7 @@ datastore.oper_proc('kill-session'){ |datastore, input_e|
   '<ok/>'
 }
 
-netconf_server = HrrRbNetconf::Server.new datastore
+netconf_server = HrrRbNetconf::Server.new datastore, logger: logger
 
 server = TCPServer.new 10830
 loop do

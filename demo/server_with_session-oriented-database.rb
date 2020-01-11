@@ -69,14 +69,12 @@ end
 
 
 logger = Logger.new STDOUT
-logger.level = Logger::INFO
 logger.level = Logger::DEBUG
-HrrRbNetconf::Logger.initialize logger
 
 
 db = SessionOrientedDatabase.new
 
-datastore = HrrRbNetconf::Server::Datastore.new(db){ |db, session, oper_handler|
+datastore = HrrRbNetconf::Server::Datastore.new(db, logger: logger){ |db, session, oper_handler|
   begin
     logger.debug { "begin DB session" }
     db_session = db.new_session session.session_id
@@ -101,14 +99,14 @@ datastore.oper_proc('close-session'){ |db_session, dummy_arg, input_e|
   begin
     db_session.close
   rescue => e
-    raise HrrRbNetconf::Server::Error['operation-failed'].new('application', 'error', message: e.message)
+    raise HrrRbNetconf::Server::Error['operation-failed'].new('application', 'error', message: e.message, logger: logger)
   end
 }
 datastore.oper_proc('lock'){ |db_session, dummy_arg, input_e|
   begin
     db_session.lock
   rescue => e
-    raise HrrRbNetconf::Server::Error['resource-denied'].new('application', 'error', message: e.message)
+    raise HrrRbNetconf::Server::Error['resource-denied'].new('application', 'error', message: e.message, logger: logger)
   end
 }
 datastore.oper_proc('unlock'){ |db_session, dummy_arg, input_e|
@@ -117,7 +115,7 @@ datastore.oper_proc('unlock'){ |db_session, dummy_arg, input_e|
 
 
 server = TCPServer.new 10830
-netconf_server = HrrRbNetconf::Server.new datastore
+netconf_server = HrrRbNetconf::Server.new datastore, logger: logger
 loop do
   Thread.new(server.accept) do |io|
     begin

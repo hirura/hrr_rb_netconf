@@ -2,15 +2,19 @@
 # vim: et ts=2 sw=2
 
 require 'tsort'
+require 'hrr_rb_netconf/loggable'
 require 'hrr_rb_netconf/server/capability'
 
 module HrrRbNetconf
   class Server
     class Capabilities
-      def initialize features=nil, capabilities_h=nil
+      include Loggable
+
+      def initialize features=nil, capabilities_h=nil, logger: nil
+        self.logger = logger
         @features = features
         unless capabilities_h
-          @caps = Capability.list.inject({}){ |a, b| a.merge({b => Capability[b].new}) }
+          @caps = Capability.list.inject({}){ |a, b| a.merge({b => Capability[b].new(logger: logger)}) }
         else
           @caps = capabilities_h
         end
@@ -26,11 +30,11 @@ module HrrRbNetconf
           a.merge({c.uri => c})
         }
         features = if @features.nil? then nil else @features.dup end
-        Capabilities.new features, capabilities_h
+        Capabilities.new features, capabilities_h, logger: logger
       end
 
       def register_capability name, &blk
-        cap = Capability.new(name)
+        cap = Capability.new name, logger: logger
         blk.call cap
         @caps[name] = cap
       end

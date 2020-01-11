@@ -2,13 +2,16 @@
 # vim: et ts=2 sw=2
 
 require 'rexml/document'
+require 'hrr_rb_netconf/loggable'
 
 module HrrRbNetconf
   class Server
-    class Error < StandardError
+    class Error
       module RpcErrorable
-        def initialize type, severity, info: nil, app_tag: nil, path: nil, message: nil
-          @logger   = Logger.new self.class.name
+        include Loggable
+
+        def initialize type, severity, info: nil, app_tag: nil, path: nil, message: nil, logger: nil
+          self.logger = logger
 
           @tag      = self.class::TAG
           @type     = type
@@ -76,10 +79,10 @@ module HrrRbNetconf
                 raise ArgumentError.new "error-message arg must contain \"value\" key if Hash"
               end
               unless @message.fetch('attributes', {}).keys.include?('xml:lang')
-                @logger.warn { "error-message arg does not contain \"xml:lang\" attribute, so assuming \"en\"" }
+                log_warn { "error-message arg does not contain \"xml:lang\" attribute, so assuming \"en\"" }
               end
             else
-              @logger.warn { "error-message arg does not contain \"xml:lang\" attribute, so assuming \"en\"" }
+              log_warn { "error-message arg does not contain \"xml:lang\" attribute, so assuming \"en\"" }
             end
           end
         end
