@@ -2,7 +2,7 @@
 # vim: et ts=2 sw=2
 
 require 'rexml/document'
-require 'hrr_rb_netconf/logger'
+require 'hrr_rb_netconf/loggable'
 
 module HrrRbNetconf
   class Server
@@ -96,10 +96,12 @@ module HrrRbNetconf
         end
 
         class Sender
+          include Loggable
+
           MAX_CHUNK_SIZE = 2**32 - 1
 
-          def initialize io_w
-            @logger = Logger.new self.class.name
+          def initialize io_w, logger: nil
+            self.logger = logger
             @io_w = io_w
             @formatter = REXML::Formatters::Pretty.new(2)
             @formatter.compact = true
@@ -112,7 +114,7 @@ module HrrRbNetconf
               begin
                 @formatter.write(REXML::Document.new(msg, {:ignore_whitespace_nodes => :all}).root, raw_msg)
               rescue => e
-                @logger.error { "Invalid sending message: #{msg.inspect}: #{e.message}" }
+                log_error { "Invalid sending message: #{msg.inspect}: #{e.message}" }
                 raise "Invalid sending message: #{msg.inspect}: #{e.message}"
               end
             when REXML::Document
@@ -120,10 +122,10 @@ module HrrRbNetconf
             when REXML::Element
               @formatter.write(msg, raw_msg)
             else
-              @logger.error { "Unexpected sending message: #{msg.inspect}" }
+              log_error { "Unexpected sending message: #{msg.inspect}" }
               raise ArgumentError, "Unexpected sending message: #{msg.inspect}"
             end
-            @logger.debug { "Sending message: #{raw_msg.string.inspect}" }
+            log_debug { "Sending message: #{raw_msg.string.inspect}" }
             raw_msg.rewind
             encoded_msg = StringIO.new
             until raw_msg.eof?
@@ -132,19 +134,21 @@ module HrrRbNetconf
               encoded_msg.write "\n##{chunk_data.size}\n#{chunk_data}"
             end
             encoded_msg.write "\n##\n"
-            @logger.debug { "Sending encoded message: #{encoded_msg.string.inspect}" }
+            log_debug { "Sending encoded message: #{encoded_msg.string.inspect}" }
             begin
               @io_w.write encoded_msg.string
             rescue => e
-              @logger.info { "Sender IO closed: #{e.class}: #{e.message}" }
+              log_info { "Sender IO closed: #{e.class}: #{e.message}" }
               raise IOError, "Sender IO closed: #{e.class}: #{e.message}"
             end
           end
         end
 
         class Receiver
-          def initialize io_r
-            @logger = Logger.new self.class.name
+          include Loggable
+
+          def initialize io_r, logger: nil
+            self.logger = logger
             @io_r = io_r
           end
 
@@ -158,11 +162,11 @@ module HrrRbNetconf
               begin
                 buf = @io_r.read(read_len)
               rescue => e
-                @logger.info { "Receiver IO closed: #{e.class}: #{e.message}" }
+                log_info { "Receiver IO closed: #{e.class}: #{e.message}" }
                 return nil
               end
               if buf.nil?
-                @logger.info { "Receiver IO closed" }
+                log_info { "Receiver IO closed" }
                 return nil
               end
               chunked_msg.write buf
@@ -172,16 +176,16 @@ module HrrRbNetconf
                   state = :before_chunk_size
                 else
                   info = "In beginning_of_msg: expected #{"\n".inspect}, but got #{buf.inspect}: #{chunked_msg.string.inspect}"
-                  @logger.info { info }
-                  raise Error['malformed-message'].new("rpc", "error")
+                  log_info { info }
+                  raise Error['malformed-message'].new("rpc", "error", logger: logger)
                 end
               when :before_chunk_size
                 if buf == "#"
                   state = :in_chunk_size
                 else
                   info = "In before_chunk_size: expected #{"#".inspect}, but got #{buf.inspect}: #{chunked_msg.string.inspect}"
-                  @logger.info { info }
-                  raise Error['malformed-message'].new("rpc", "error")
+                  log_info { info }
+                  raise Error['malformed-message'].new("rpc", "error", logger: logger)
                 end
               when :in_chunk_size
                 if buf =~ /[0-9]/
@@ -193,8 +197,8 @@ module HrrRbNetconf
                   state = :ending_msg
                 else
                   info = "In in_chunk_size: expected #{"/[0-9]/".inspect}, #{"\n".inspect}, or #{"#".inspect}, but got #{buf.inspect}: #{chunked_msg.string.inspect}"
-                  @logger.info { info }
-                  raise Error['malformed-message'].new("rpc", "error")
+                  log_info { info }
+                  raise Error['malformed-message'].new("rpc", "error", logger: logger)
                 end
               when :in_chunk_data
                 chunk_size = StringIO.new
@@ -206,28 +210,28 @@ module HrrRbNetconf
                   state = :before_chunk_size
                 else
                   info = "In after_chunk_data: expected #{"\n".inspect}, but got #{buf.inspect}: #{chunked_msg.string.inspect}"
-                  @logger.info { info }
-                  raise Error['malformed-message'].new("rpc", "error")
+                  log_info { info }
+                  raise Error['malformed-message'].new("rpc", "error", logger: logger)
                 end
               when :ending_msg
                 if buf == "\n"
                   state = :end_of_msg
                 else
                   info = "In ending_msg: expected #{"\n".inspect}, but got #{buf.inspect}: #{chunked_msg.string.inspect}"
-                  @logger.info { info }
-                  raise Error['malformed-message'].new("rpc", "error")
+                  log_info { info }
+                  raise Error['malformed-message'].new("rpc", "error", logger: logger)
                 end
               end
             end
-            @logger.debug { "Received message: #{decoded_msg.string.inspect}" }
+            log_debug { "Received message: #{decoded_msg.string.inspect}" }
             begin
               received_msg = REXML::Document.new(decoded_msg.string, {:ignore_whitespace_nodes => :all}).root
               validate_received_msg received_msg
               received_msg
             rescue => e
               info = "Invalid received message: #{e.message.split("\n").first}: #{decoded_msg.string.inspect}"
-              @logger.info { info }
-              raise Error['malformed-message'].new("rpc", "error")
+              log_info { info }
+              raise Error['malformed-message'].new("rpc", "error", logger: logger)
             end
           end
 

@@ -2,10 +2,13 @@
 # vim: et ts=2 sw=2
 
 require 'uri'
+require 'hrr_rb_netconf/loggable'
 
 module HrrRbNetconf
   class Server
     class Capability
+      include Loggable
+
       @subclass_list = Array.new
 
       class << self
@@ -31,7 +34,8 @@ module HrrRbNetconf
 
       attr_accessor :if_features, :dependencies, :queries
 
-      def initialize id=nil
+      def initialize id=nil, logger: nil
+        self.logger = logger
         @id           = id || self.class::ID
         @queries      = (self.class::QUERIES rescue {})
         @if_features  = (self.class::IF_FEATURES rescue [])

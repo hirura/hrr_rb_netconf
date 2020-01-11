@@ -1,26 +1,28 @@
 # coding: utf-8
 # vim: et ts=2 sw=2
 
-require 'hrr_rb_netconf/logger'
+require 'hrr_rb_netconf/loggable'
 
 module HrrRbNetconf
   class Server
     class Datastore
       class OperHandler
-        def initialize
-          @logger = Logger.new self.class.name
+        include Loggable
+
+        def initialize logger: nil
+          self.logger = logger
         end
 
         def start *args
-          @logger.info { "Starting OperHandler" }
-          @logger.debug { "args: #{args.inspect}" }
+          log_info { "Starting OperHandler" }
+          log_debug { "args: #{args.inspect}" }
           @args = args
           Fiber.yield
-          @logger.info { "Exiting OperHandler" }
+          log_info { "Exiting OperHandler" }
         end
 
         def run oper, input
-          @logger.debug { "run with oper, input: #{oper.inspect}, #{input.inspect}" }
+          log_debug { "run with oper, input: #{oper.inspect}, #{input.inspect}" }
           oper.call(*(@args + [input]))
         end
       end

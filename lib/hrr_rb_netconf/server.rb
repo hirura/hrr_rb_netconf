@@ -4,7 +4,7 @@
 require 'date'
 require 'thread'
 require 'hrr_rb_relaxed_xml'
-require 'hrr_rb_netconf/logger'
+require 'hrr_rb_netconf/loggable'
 require 'hrr_rb_netconf/server/error'
 require 'hrr_rb_netconf/server/errors'
 require 'hrr_rb_netconf/server/datastore'
@@ -15,15 +15,17 @@ require 'hrr_rb_netconf/server/notification_streams'
 
 module HrrRbNetconf
   class Server
+    include Loggable
+
     SESSION_ID_UNALLOCATED = "UNALLOCATED"
     SESSION_ID_MIN = 1
     SESSION_ID_MAX = 2**32 - 1
     SESSION_ID_MODULO = SESSION_ID_MAX - SESSION_ID_MIN + 1
 
-    def initialize datastore, capabilities: nil, strict_capabilities: false
-      @logger = Logger.new self.class.name
+    def initialize datastore, capabilities: nil, strict_capabilities: false, logger: nil
+      self.logger = logger
       @datastore = datastore
-      @capabilities = capabilities || Capabilities.new
+      @capabilities = capabilities || Capabilities.new(logger: logger)
       @strict_capabilities = strict_capabilities
       @mutex = Mutex.new
       @sessions = Hash.new
@@ -36,7 +38,7 @@ module HrrRbNetconf
     def allocate_session_id
       session_id = (SESSION_ID_MODULO).times.lazy.map{ |idx| (@last_session_id + 1 + idx - SESSION_ID_MIN) % SESSION_ID_MODULO + SESSION_ID_MIN }.reject{ |sid| @sessions.has_key? sid }.first
       unless session_id
-        @logger.error { "Failed allocating Session ID" }
+        log_error { "Failed allocating Session ID" }
         raise "Failed allocating Session ID"
       end
       @last_session_id = session_id
@@ -49,20 +51,20 @@ module HrrRbNetconf
     end
 
     def start_session io
-      @logger.info { "Start session" }
+      log_info { "Start session" }
       session_id = SESSION_ID_UNALLOCATED
       begin
         @mutex.synchronize do
           session_id = allocate_session_id
-          @logger.info { "Session ID: #{session_id}" }
-          @sessions[session_id] = Session.new self, @capabilities, @datastore, session_id, io, @strict_capabilities
+          log_info { "Session ID: #{session_id}" }
+          @sessions[session_id] = Session.new self, @capabilities, @datastore, session_id, io, @strict_capabilities, logger: logger
         end
         @sessions[session_id].start
       rescue => e
-        @logger.error { "Session terminated: Session ID: #{session_id}" }
+        log_error { "Session terminated: Session ID: #{session_id}" }
         raise
       else
-        @logger.info { "Session closed: Session ID: #{session_id}" }
+        log_info { "Session closed: Session ID: #{session_id}" }
       ensure
         @lock_mutex.synchronize do
           @locks.delete_if{ |tgt, sid| sid == session_id }
@@ -74,16 +76,16 @@ module HrrRbNetconf
     end
 
     def close_session session_id
-      @logger.info { "Close session: Session ID: #{session_id}" }
+      log_info { "Close session: Session ID: #{session_id}" }
       @sessions[session_id].close
     end
 
     def lock target, session_id
-      @logger.info { "Lock: Target: #{target}, Session ID: #{session_id}" }
+      log_info { "Lock: Target: #{target}, Session ID: #{session_id}" }
       @lock_mutex.synchronize do
         if @locks.has_key? target
-          @logger.info { "Lock failed, lock is already held by session-id: #{@locks[target]}" }
-          raise Error['lock-denied'].new('protocol', 'error', info: {'session-id' => @locks[target].to_s}, message: 'Lock failed, lock is already held')
+          log_info { "Lock failed, lock is already held by session-id: #{@locks[target]}" }
+          raise Error['lock-denied'].new('protocol', 'error', info: {'session-id' => @locks[target].to_s}, message: 'Lock failed, lock is already held', logger: logger)
         else
           @locks[target] = session_id
         end
@@ -91,18 +93,18 @@ module HrrRbNetconf
     end
 
     def unlock target, session_id
-      @logger.info { "Unlock: Target: #{target}, Session ID: #{session_id}" }
+      log_info { "Unlock: Target: #{target}, Session ID: #{session_id}" }
       @lock_mutex.synchronize do
         if @locks.has_key? target
           if @locks[target] == session_id
             @locks.delete target
           else
-            @logger.info { "Unlock failed, lock is held by session-id: #{@locks[target]}" }
-            raise Error['operation-failed'].new('protocol', 'error')
+            log_info { "Unlock failed, lock is held by session-id: #{@locks[target]}" }
+            raise Error['operation-failed'].new('protocol', 'error', logger: logger)
           end
         else
-          @logger.info { "Unlock failed, lock is not held" }
-          raise Error['operation-failed'].new('protocol', 'error')
+          log_info { "Unlock failed, lock is not held" }
+          raise Error['operation-failed'].new('protocol', 'error', logger: logger)
         end
       end
     end
@@ -126,12 +128,12 @@ module HrrRbNetconf
     def send_notification arg1, arg2=nil
       event_xml = NotificationEvent.new(arg1, arg2).to_xml
       matched_streams = @notification_streams.matched_streams event_xml
-      @logger.info { "Send notification" }
-      @logger.debug { "Event time: #{event_xml.elements['eventTime'].text}, Event: #{event_xml.elements.to_a}" }
+      log_info { "Send notification" }
+      log_debug { "Event time: #{event_xml.elements['eventTime'].text}, Event: #{event_xml.elements.to_a}" }
       @sessions.each{ |session_id, session|
         session.filter_and_send_notification matched_streams, event_xml
       }
-      @logger.info { "Send notification done" }
+      log_info { "Send notification done" }
     end
   end
 end

@@ -1,15 +1,17 @@
 # coding: utf-8
 # vim: et ts=2 sw=2
 
-require 'hrr_rb_netconf/logger'
+require 'hrr_rb_netconf/loggable'
 require 'hrr_rb_netconf/server/model'
 require 'hrr_rb_netconf/server/filter'
 
 module HrrRbNetconf
   class Server
     class Operation
-      def initialize session, capabilities, datastore_session, strict_capabilities
-        @logger = Logger.new self.class.name
+      include Loggable
+
+      def initialize session, capabilities, datastore_session, strict_capabilities, logger: nil
+        self.logger = logger
         @session = session
         @capabilities = capabilities
         @datastore_session = datastore_session
@@ -22,14 +24,14 @@ module HrrRbNetconf
 
       def load_capabilities
         @capabilities.each_loadable{ |c|
-          @logger.debug { "Load capability: #{c.id}" }
+          log_debug { "Load capability: #{c.id}" }
           c.oper_procs.each{ |k, v|
             @oper_procs[k] = v
           }
           if @strict_capabilities
             c.models.each{ |m|
               oper_name, path, stmt, options = m
-              @models[oper_name] ||= Model.new oper_name
+              @models[oper_name] ||= Model.new oper_name, logger: logger
               @models[oper_name].add c, path, stmt, options
             }
           end
@@ -48,24 +50,24 @@ module HrrRbNetconf
 
       def run xml_doc
         unless xml_doc.root.name == 'rpc'
-          @logger.error { "Invalid root tag: must be rpc, but got #{xml_doc.root.name}" }
-          raise Error['operation-not-supported'].new('protocol', 'error')
+          log_error { "Invalid root tag: must be rpc, but got #{xml_doc.root.name}" }
+          raise Error['operation-not-supported'].new('protocol', 'error', logger: logger)
         end
 
         message_id = xml_doc.attributes['message-id']
         unless message_id
-          raise Error['missing-attribute'].new('rpc', 'error', info: {'bad-attribute' => 'message-id', 'bad-element' => 'rpc'})
+          raise Error['missing-attribute'].new('rpc', 'error', info: {'bad-attribute' => 'message-id', 'bad-element' => 'rpc'}, logger: logger)
         end
 
         input_e = xml_doc.elements[1]
 
         unless @oper_procs.has_key? input_e.name
-          raise Error['operation-not-supported'].new('protocol', 'error')
+          raise Error['operation-not-supported'].new('protocol', 'error', logger: logger)
         end
 
         if @strict_capabilities
           unless validate input_e
-            raise Error['operation-not-supported'].new('application', 'error')
+            raise Error['operation-not-supported'].new('application', 'error', logger: logger)
           end
         end
 

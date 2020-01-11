@@ -21,14 +21,12 @@ end
 
 
 logger = Logger.new STDOUT
-logger.level = Logger::INFO
 logger.level = Logger::DEBUG
-HrrRbNetconf::Logger.initialize logger
 
 
 db = '<root />'
 
-datastore = HrrRbNetconf::Server::Datastore.new(db)
+datastore = HrrRbNetconf::Server::Datastore.new(db, logger: logger)
 datastore.oper_proc('get'){ |db, input_e|
   db
 }
@@ -49,7 +47,7 @@ datastore.oper_proc('unlock'){ |db, input_e|
   # pass
 }
 
-netconf_server = HrrRbNetconf::Server.new datastore
+netconf_server = HrrRbNetconf::Server.new datastore, logger: logger
 
 
 auth_password = HrrRbSsh::Authentication::Authenticator.new { |context|

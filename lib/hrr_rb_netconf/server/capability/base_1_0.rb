@@ -2,7 +2,7 @@
 # vim: et ts=2 sw=2
 
 require 'rexml/document'
-require 'hrr_rb_netconf/logger'
+require 'hrr_rb_netconf/loggable'
 
 module HrrRbNetconf
   class Server
@@ -96,8 +96,10 @@ module HrrRbNetconf
         end
 
         class Sender
-          def initialize io_w
-            @logger = Logger.new self.class.name
+          include Loggable
+
+          def initialize io_w, logger: nil
+            self.logger = logger
             @io_w = io_w
             @formatter = REXML::Formatters::Pretty.new(2)
             @formatter.compact = true
@@ -110,7 +112,7 @@ module HrrRbNetconf
               begin
                 @formatter.write(REXML::Document.new(msg, {:ignore_whitespace_nodes => :all}).root, buf)
               rescue => e
-                @logger.error { "Invalid sending message: #{msg.inspect}: #{e.message}" }
+                log_error { "Invalid sending message: #{msg.inspect}: #{e.message}" }
                 raise "Invalid sending message: #{msg.inspect}: #{e.message}"
               end
             when REXML::Document
@@ -118,22 +120,24 @@ module HrrRbNetconf
             when REXML::Element
               @formatter.write(msg, buf)
             else
-              @logger.error { "Unexpected sending message: #{msg.inspect}" }
+              log_error { "Unexpected sending message: #{msg.inspect}" }
               raise ArgumentError, "Unexpected sending message: #{msg.inspect}"
             end
-            @logger.debug { "Sending message: #{buf.inspect}" }
+            log_debug { "Sending message: #{buf.inspect}" }
             begin
               @io_w.write "#{buf}\n]]>]]>"
             rescue => e
-              @logger.info { "Sender IO closed: #{e.class}: #{e.message}" }
+              log_info { "Sender IO closed: #{e.class}: #{e.message}" }
               raise IOError, "Sender IO closed: #{e.class}: #{e.message}"
             end
           end
         end
 
         class Receiver
-          def initialize io_r
-            @logger = Logger.new self.class.name
+          include Loggable
+
+          def initialize io_r, logger: nil
+            self.logger = logger
             @io_r = io_r
           end
 
@@ -143,11 +147,11 @@ module HrrRbNetconf
               begin
                 tmp = @io_r.read(1)
               rescue => e
-                @logger.info { "Receiver IO closed: #{e.class}: #{e.message}" }
+                log_info { "Receiver IO closed: #{e.class}: #{e.message}" }
                 return nil
               end
               if tmp.nil?
-                @logger.info { "Receiver IO closed" }
+                log_info { "Receiver IO closed" }
                 return nil
               end
               buf += tmp
@@ -155,14 +159,14 @@ module HrrRbNetconf
                 break
               end
             end
-            @logger.debug { "Received message: #{buf[0..-7].inspect}" }
+            log_debug { "Received message: #{buf[0..-7].inspect}" }
             begin
               received_msg = REXML::Document.new(buf[0..-7], {:ignore_whitespace_nodes => :all}).root
               validate_received_msg received_msg
               received_msg
             rescue => e
               info = "Invalid received message: #{e.message.split("\n").first}: #{buf[0..-7].inspect}"
-              @logger.info { info }
+              log_info { info }
               raise info
             end
           end
