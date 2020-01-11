@@ -81,8 +81,8 @@ server = TCPServer.new 10830
 loop do
   Thread.new(server.accept) do |io|
     begin
-      ssh_server = HrrRbSsh::Server.new io, options
-      ssh_server.start
+      ssh_server = HrrRbSsh::Server.new options
+      ssh_server.start io
     rescue => e
       logger.error { [e.backtrace[0], ": ", e.message, " (", e.class.to_s, ")\n\t", e.backtrace[1..-1].join("\n\t")].join }
     ensure
