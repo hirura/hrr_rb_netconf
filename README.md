@@ -71,25 +71,27 @@ Where, the `datastore` variable is an instance of `HrrRbNetconf::Server::Datasto
 
 #### Logging
 
-The library provides logging functionality. To enable logging of the library, initialize `HrrRbNetconf::Logger` class.
+The library provides logging functionality. To enable logging in the library, give a `logger` to `Server.new`.
 
 ```ruby
-HrrRbNetconf::Logger.initialize logger
+HrrRbNetconf::Server.new datastore, logger: logger
 ```
 
-Where, the `logger` variable can be an instance of standard Logger class or user-defined logger class. What `HrrRbNetconf::Logger` class requires for `logger` variable is that the `logger` instance responds to `#fatal`, `#error`, `#warn`, `#info` and `#debug`.
+Where, the `logger` variable can be an instance of standard Logger class or user-defined logger class. What the library requires for `logger` variable is that the `logger` instance responds to `#fatal`, `#error`, `#warn`, `#info` and `#debug` with the following syntax.
+
+```ruby
+logger.fatal(progname){ message }
+logger.error(progname){ message }
+logger.warn(progname){ message }
+logger.info(progname){ message }
+logger.debug(progname){ message }
+```
 
 For instance, `logger` variable can be prepared like below.
 
 ```ruby
 logger = Logger.new STDOUT
 logger.level = Logger::INFO
-```
-
-To disable logging, you can un-initialize `HrrRbNetconf::Logger`.
-
-```ruby
-HrrRbNetconf::Logger.uninitialize
 ```
 
 #### Handling datastore operations
