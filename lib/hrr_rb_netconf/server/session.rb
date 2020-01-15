@@ -140,7 +140,7 @@ module HrrRbNetconf
               rpc_reply_e.add_namespace("urn:ietf:params:xml:ns:netconf:base:1.0")
               rpc_reply_e.add e.to_rpc_error
             rescue => e
-              log_error { e.message }
+              log_error { [e.backtrace[0], ": ", e.message, " (", e.class.to_s, ")\n\t", e.backtrace[1..-1].join("\n\t")].join }
               raise
             end
             @monitor.synchronize do
@@ -151,7 +151,7 @@ module HrrRbNetconf
                 rpc_reply_e.name = "rpc-reply"
                 rpc_reply_e.add e.to_rpc_error
               rescue => e
-                log_error { e.message }
+                log_error { [e.backtrace[0], ": ", e.message, " (", e.class.to_s, ")\n\t", e.backtrace[1..-1].join("\n\t")].join }
                 raise
               ensure
                 begin
