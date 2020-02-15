@@ -27,7 +27,7 @@ module HrrRbNetconf
         def filter raw_output_e, input_e
           filter_e = input_e.elements['filter']
           if filter_e
-            filter_type = filter_e.attributes['type']
+            filter_type = filter_e.attributes['type'] || 'subtree'
             if self[filter_type]
               self[filter_type].filter raw_output_e, filter_e
             else
