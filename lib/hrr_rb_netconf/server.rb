@@ -22,11 +22,12 @@ module HrrRbNetconf
     SESSION_ID_MAX = 2**32 - 1
     SESSION_ID_MODULO = SESSION_ID_MAX - SESSION_ID_MIN + 1
 
-    def initialize datastore, capabilities: nil, strict_capabilities: false, logger: nil
+    def initialize datastore, capabilities: nil, strict_capabilities: false, enable_filter: true, logger: nil
       self.logger = logger
       @datastore = datastore
       @capabilities = capabilities || Capabilities.new(logger: logger)
       @strict_capabilities = strict_capabilities
+      @enable_filter = enable_filter
       @mutex = Mutex.new
       @sessions = Hash.new
       @locks = Hash.new
@@ -57,7 +58,7 @@ module HrrRbNetconf
         @mutex.synchronize do
           session_id = allocate_session_id
           log_info { "Session ID: #{session_id}" }
-          @sessions[session_id] = Session.new self, @capabilities, @datastore, session_id, io, @strict_capabilities, logger: logger
+          @sessions[session_id] = Session.new self, @capabilities, @datastore, session_id, io, @strict_capabilities, @enable_filter, logger: logger
         end
         @sessions[session_id].start
       rescue => e

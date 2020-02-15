@@ -10,12 +10,13 @@ module HrrRbNetconf
     class Operation
       include Loggable
 
-      def initialize session, capabilities, datastore_session, strict_capabilities, logger: nil
+      def initialize session, capabilities, datastore_session, strict_capabilities, enable_filter, logger: nil
         self.logger = logger
         @session = session
         @capabilities = capabilities
         @datastore_session = datastore_session
         @strict_capabilities = strict_capabilities
+        @enable_filter = enable_filter
         @models = Hash.new
         @oper_procs = Hash.new
 
@@ -83,7 +84,11 @@ module HrrRbNetconf
                        else
                          raise "Unexpected output: #{raw_output.inspect}"
                        end
-        output_e = Filter.filter(raw_output_e, input_e)
+        if @enable_filter
+          output_e = Filter.filter(raw_output_e, input_e)
+        else
+          output_e = raw_output_e
+        end
         rpc_reply_e = xml_doc.clone
         rpc_reply_e.name = "rpc-reply"
         rpc_reply_e.add output_e

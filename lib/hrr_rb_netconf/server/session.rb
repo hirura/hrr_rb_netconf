@@ -18,7 +18,7 @@ module HrrRbNetconf
 
       attr_reader :session_id
 
-      def initialize server, capabilities, datastore, session_id, io, strict_capabilities, logger: nil
+      def initialize server, capabilities, datastore, session_id, io, strict_capabilities, enable_filter, logger: nil
         self.logger = logger
         @server = server
         @local_capabilities = capabilities
@@ -34,6 +34,7 @@ module HrrRbNetconf
                          raise ArgumentError, "io must be an instance of IO or Array"
                        end
         @strict_capabilities = strict_capabilities
+        @enable_filter = enable_filter
         @closed = false
         @notification_enabled = false
         @monitor = Monitor.new
@@ -127,7 +128,7 @@ module HrrRbNetconf
 
       def operation_loop
         datastore_session = @datastore.new_session self
-        operation = Operation.new self, @capabilities, datastore_session, @strict_capabilities, logger: logger
+        operation = Operation.new self, @capabilities, datastore_session, @strict_capabilities, @enable_filter, logger: logger
 
         begin
           loop do
