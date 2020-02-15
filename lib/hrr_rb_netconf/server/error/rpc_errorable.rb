@@ -50,7 +50,7 @@ module HrrRbNetconf
             unless @info.kind_of? Hash
               raise ArgumentError.new "error-info arg must be a kind of Hash, but given #{@info.class}"
             end
-            unless self.class::INFO.all?{ |e| @info[e] }
+            unless self.class::INFO.all?{ |k| @info.has_key? k }
               raise ArgumentError.new "error-info arg must contain #{self.class::INFO} as keys, but given #{@info}"
             end
           end
