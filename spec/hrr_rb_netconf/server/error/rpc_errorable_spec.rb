@@ -72,7 +72,6 @@ RSpec.describe HrrRbNetconf::Server::Error::RpcErrorable do
         describe "with valid type, valid severity, and valid info" do
           let(:type){ 'protocol' }
           let(:severity){ 'error' }
-          let(:info){ {'bad-attribute' => 'bad-attr', 'bad-element' => 'bad-elem'} }
           let(:expect_xml_str){ <<-EOB
             <rpc-error>
               <error-tag>#{tag}</error-tag>
@@ -86,9 +85,22 @@ RSpec.describe HrrRbNetconf::Server::Error::RpcErrorable do
             EOB
           }
 
-          it "does not raise error" do
-            expect{ error }.not_to raise_error
-            expect(rpc_error_xml_to_s).to eq expect_xml_to_s
+          context "when info values are not nil" do
+            let(:info){ {'bad-attribute' => 'bad-attr', 'bad-element' => 'bad-elem'} }
+
+            it "does not raise error" do
+              expect{ error }.not_to raise_error
+              expect(rpc_error_xml_to_s).to eq expect_xml_to_s
+            end
+          end
+
+          context "when some of info values are nil" do
+            let(:info){ {'bad-attribute' => nil, 'bad-element' => 'bad-elem'} }
+
+            it "does not raise error" do
+              expect{ error }.not_to raise_error
+              expect(rpc_error_xml_to_s).to eq expect_xml_to_s
+            end
           end
         end
 
@@ -380,7 +392,6 @@ RSpec.describe HrrRbNetconf::Server::Error::RpcErrorable do
         describe "with valid type, valid severity, and valid info" do
           let(:type){ 'protocol' }
           let(:severity){ 'error' }
-          let(:info){ {'any-key' => 'any-value'} }
           let(:expect_xml_str){ <<-EOB
             <rpc-error>
               <error-tag>#{tag}</error-tag>
@@ -393,9 +404,22 @@ RSpec.describe HrrRbNetconf::Server::Error::RpcErrorable do
             EOB
           }
 
-          it "does not raise error" do
-            expect{ error }.not_to raise_error
-            expect(rpc_error_xml_to_s).to eq expect_xml_to_s
+          context "when info values are not nil" do
+            let(:info){ {'any-key' => 'any-value'} }
+
+            it "does not raise error" do
+              expect{ error }.not_to raise_error
+              expect(rpc_error_xml_to_s).to eq expect_xml_to_s
+            end
+          end
+
+          context "when some of info values are nil" do
+            let(:info){ {'any-key' => nil} }
+
+            it "does not raise error" do
+              expect{ error }.not_to raise_error
+              expect(rpc_error_xml_to_s).to eq expect_xml_to_s
+            end
           end
         end
 
