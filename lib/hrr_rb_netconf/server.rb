@@ -62,10 +62,7 @@ module HrrRbNetconf
         end
         @sessions[session_id].start
       rescue => e
-        log_error { "Session terminated: Session ID: #{session_id}" }
-        raise
-      else
-        log_info { "Session closed: Session ID: #{session_id}" }
+        log_error { [e.backtrace[0], ": ", e.message, " (", e.class.to_s, ")\n\t", e.backtrace[1..-1].join("\n\t")].join }
       ensure
         @lock_mutex.synchronize do
           @locks.delete_if{ |tgt, sid| sid == session_id }
@@ -73,6 +70,7 @@ module HrrRbNetconf
         @mutex.synchronize do
           delete_session session_id
         end
+        log_info { "Session closed: Session ID: #{session_id}" }
       end
     end
 
