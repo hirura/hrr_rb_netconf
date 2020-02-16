@@ -37,7 +37,7 @@ module HrrRbNetconf
           }
 
           oper_proc('lock'){ |session, datastore, input_e|
-            target = input_e.elements['target'].elements[1].name
+            target = input_e.elements["*[local-name()='target' and namespace-uri()='urn:ietf:params:xml:ns:netconf:base:1.0']/*[position()=1]"].name
             session.lock target
             begin
               datastore.run 'lock', input_e
@@ -50,7 +50,7 @@ module HrrRbNetconf
 
           oper_proc('unlock'){ |session, datastore, input_e|
             datastore.run 'unlock', input_e
-            target = input_e.elements['target'].elements[1].name
+            target = input_e.elements["*[local-name()='target' and namespace-uri()='urn:ietf:params:xml:ns:netconf:base:1.0']/*[position()=1]"].name
             session.unlock target
             '<ok />'
           }
