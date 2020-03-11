@@ -1,6 +1,6 @@
 # HrrRbNetconf
 
-[![Build Status](https://travis-ci.org/hirura/hrr_rb_netconf.svg?branch=master)](https://travis-ci.org/hirura/hrr_rb_netconf)
+[![Build Status](https://travis-ci.com/hirura/hrr_rb_netconf.svg?branch=master)](https://travis-ci.com/hirura/hrr_rb_netconf)
 [![Maintainability](https://api.codeclimate.com/v1/badges/bd9f4c3f7307082f74b0/maintainability)](https://codeclimate.com/github/hirura/hrr_rb_netconf/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/bd9f4c3f7307082f74b0/test_coverage)](https://codeclimate.com/github/hirura/hrr_rb_netconf/test_coverage)
 [![Gem Version](https://badge.fury.io/rb/hrr_rb_netconf.svg)](https://badge.fury.io/rb/hrr_rb_netconf)
