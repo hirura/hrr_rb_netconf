@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "hrr_rb_relaxed_xml"
 
-  spec.add_development_dependency "rake", "~> 12.0"
+  spec.add_development_dependency "rake", ">= 12.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "simplecov", "~> 0.16"
 end
